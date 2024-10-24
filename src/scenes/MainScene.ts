@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 
 export class MainScene extends Phaser.Scene {
+  constructor() {
+    super('MainScene');
+  }
+
   preload() {
     this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
 
