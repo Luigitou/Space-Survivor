@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
+import { BasicEntity } from '~/objects';
 
 export class MainScene extends Phaser.Scene {
   private readonly mapWidth = 2000;
   private readonly mapHeight = 2000;
+  private player!: BasicEntity;
 
   constructor() {
     super('MainScene');
@@ -13,7 +15,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    this.updateWorldBounds();
+    // ----- Creation de la map
 
     const imageWidth = 1920;
     const imageHeight = 1200;
@@ -29,17 +31,32 @@ export class MainScene extends Phaser.Scene {
     spaceBackground.tileScaleX = imageWidth / spaceBackground.width;
     spaceBackground.tileScaleY = imageHeight / spaceBackground.height;
 
-    this.scale.on('resize', this.resize, this);
+    // ------ Création de la zone de jeu
+    const playableArea = this.add.rectangle(
+      100,
+      100,
+      this.mapWidth - 200,
+      this.mapHeight - 200,
+      0xffffff,
+      0.1
+    );
+
+    playableArea.setOrigin(0, 0);
+    this.physics.world.setBounds(
+      playableArea.x,
+      playableArea.y,
+      playableArea.width,
+      playableArea.height
+    );
+
+    // ----- Création du joueur
+    this.player = new BasicEntity(this, this.mapWidth / 2, this.mapHeight / 2);
+
+    this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight);
+    this.cameras.main.startFollow(this.player);
   }
 
-  updateWorldBounds() {
-    this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
-  }
-
-  resize(gameSize: Phaser.Structs.Size) {
-    const width = gameSize.width;
-    const height = gameSize.height;
-
-    this.physics.world.setBounds(0, 0, width, height);
+  update() {
+    this.player.update();
   }
 }
