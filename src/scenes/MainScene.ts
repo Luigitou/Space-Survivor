@@ -2,58 +2,57 @@ import Phaser from 'phaser';
 import { BasicEntity } from '~/objects';
 
 export class MainScene extends Phaser.Scene {
-  private readonly mapWidth = 2000;
-  private readonly mapHeight = 2000;
   private player!: BasicEntity;
+  private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
 
   constructor() {
     super('MainScene');
   }
 
   preload() {
-    this.load.image('space-background', 'assets/game-background.jpg');
+    this.load.tilemapTiledJSON('map', 'assets/map/Map.json');
+    this.load.image('tiles', 'assets/map/Map-tileset.png');
   }
 
   create() {
     // ----- Creation de la map
-
-    const imageWidth = 1920;
-    const imageHeight = 1200;
-    const spaceBackground = this.add.tileSprite(
-      0,
-      0,
-      this.mapWidth,
-      this.mapHeight,
-      'space-background'
-    );
-
-    spaceBackground.setOrigin(0, 0);
-    spaceBackground.tileScaleX = imageWidth / spaceBackground.width;
-    spaceBackground.tileScaleY = imageHeight / spaceBackground.height;
-
-    // ------ Création de la zone de jeu
-    const playableArea = this.add.rectangle(
-      100,
-      100,
-      this.mapWidth - 200,
-      this.mapHeight - 200,
-      0xffffff,
-      0.1
-    );
-
-    playableArea.setOrigin(0, 0);
-    this.physics.world.setBounds(
-      playableArea.x,
-      playableArea.y,
-      playableArea.width,
-      playableArea.height
-    );
+    const map = this.make.tilemap({ key: 'map' });
+    const tileset = map.addTilesetImage('Spaceship', 'tiles');
+    if (tileset) {
+      map.createLayer('Ground', tileset, 0, 0);
+      const wallsLayer = map.createLayer('Walls', tileset, 0, 0);
+      const interiorWallsLayer = map.createLayer(
+        'Interior Walls',
+        tileset,
+        0,
+        0
+      );
+      this.collisionLayer = [
+        ...this.collisionLayer,
+        wallsLayer,
+        interiorWallsLayer,
+      ];
+    } else {
+      console.error('Unable to load tileset');
+    }
 
     // ----- Création du joueur
-    this.player = new BasicEntity(this, this.mapWidth / 2, this.mapHeight / 2);
+    this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
 
-    this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight);
+    // ----- Ajout des collisions
+    this.collisionLayer.forEach((layer) => {
+      if (layer) {
+        layer.setCollisionByExclusion([-1]);
+        this.physics.add.collider(this.player, layer);
+      }
+    });
+
+    // ----- Ajout de la camera
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
+
+    // Réglage du monde
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   }
 
   update() {
