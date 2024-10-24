@@ -1,36 +1,33 @@
 import Phaser from 'phaser';
 
 export class MainScene extends Phaser.Scene {
+  private readonly mapWidth = 2000;
+  private readonly mapHeight = 2000;
+
   constructor() {
     super('MainScene');
   }
 
   preload() {
-    this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
-
-    this.load.image('sky', 'assets/skies/space3.png');
-    this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-    this.load.image('red', 'assets/particles/red.png');
+    this.load.image('space-background', 'assets/game-background.jpg');
   }
 
   create() {
     this.updateWorldBounds();
 
-    this.add.image(400, 300, 'sky');
+    const imageWidth = 1920;
+    const imageHeight = 1200;
+    const spaceBackground = this.add.tileSprite(
+      0,
+      0,
+      this.mapWidth,
+      this.mapHeight,
+      'space-background'
+    );
 
-    const particles = this.add.particles(0, 0, 'red', {
-      speed: 100,
-      scale: { start: 1, end: 0 },
-      blendMode: 'ADD',
-    });
-
-    const logo = this.physics.add.image(400, 100, 'logo');
-
-    logo.setVelocity(100, 200);
-    logo.setBounce(1, 1);
-    logo.setCollideWorldBounds(true);
-
-    particles.startFollow(logo);
+    spaceBackground.setOrigin(0, 0);
+    spaceBackground.tileScaleX = imageWidth / spaceBackground.width;
+    spaceBackground.tileScaleY = imageHeight / spaceBackground.height;
 
     this.scale.on('resize', this.resize, this);
   }
