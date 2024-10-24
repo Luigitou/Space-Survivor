@@ -10,6 +10,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
+    this.updateWorldBounds();
+
     this.add.image(400, 300, 'sky');
 
     const particles = this.add.particles(0, 0, 'red', {
@@ -25,5 +27,18 @@ export class MainScene extends Phaser.Scene {
     logo.setCollideWorldBounds(true);
 
     particles.startFollow(logo);
+
+    this.scale.on('resize', this.resize, this);
+  }
+
+  updateWorldBounds() {
+    this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
+  }
+
+  resize(gameSize: Phaser.Structs.Size) {
+    const width = gameSize.width;
+    const height = gameSize.height;
+
+    this.physics.world.setBounds(0, 0, width, height);
   }
 }
