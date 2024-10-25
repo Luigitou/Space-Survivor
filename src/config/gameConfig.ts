@@ -7,7 +7,7 @@ export const gameConfig = {
   physics: {
     default: 'matter',
     matter: {
-      gravity: { y: 0 },
+      gravity: { x: 0, y: 0 },
       debug: true,
     },
   },

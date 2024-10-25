@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { BasicEntity } from '~/objects';
 import { Enemy } from '~/objects/Enemy';
+import { EasyStarManager } from '~/utils';
 
 export class MainScene extends Phaser.Scene {
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
   private enemies: Array<Enemy> = [];
+  private easystarManager!: EasyStarManager;
 
   constructor() {
     super('MainScene');
@@ -40,6 +42,10 @@ export class MainScene extends Phaser.Scene {
     // ----- Création du joueur
     this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
 
+    // ----- Configuration du wrapper de l'algorithme du chemin le plus court (Astar)
+    this.easystarManager = new EasyStarManager();
+    this.easystarManager.initializeGrid(map, 'Walls', [0, 999999999]);
+
     // ----- Création des ennemis
     this.enemies.push(new Enemy(this, 1100, map.heightInPixels - 200));
     this.enemies.push(new Enemy(this, 1200, map.heightInPixels - 200));
@@ -56,6 +62,6 @@ export class MainScene extends Phaser.Scene {
 
   update() {
     this.player.update();
-    this.enemies.forEach((enemy) => enemy.update());
+    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
   }
 }
