@@ -1,2 +1,2 @@
 export { BasicEntity } from './BasicEntity';
-export { CharacterEntity } from './CharacterEntity';
+export { CharacterEntity } from './character/entity/CharacterEntity';
