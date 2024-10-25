@@ -1,37 +1,43 @@
-export class BasicEntity extends Phaser.Physics.Arcade.Sprite {
+import { PlayerConfig } from '~/config';
+
+export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'basic-entity');
+    super(scene.matter.world, x, y, 'basic-entity');
 
     scene.add.existing(this);
-    scene.physics.add.existing(this);
 
-    this.displayWidth = 50;
-    this.displayHeight = 50;
-    this.setTint(0xff0000);
-    this.setCollideWorldBounds(true);
+    this.setRectangle(PlayerConfig.size, PlayerConfig.size);
+    this.setFixedRotation();
+
+    this.setFrictionAir(PlayerConfig.airFriction);
+    this.setBounce(PlayerConfig.bounce);
+    this.setMass(PlayerConfig.mass);
 
     this.cursors = scene.input.keyboard?.createCursorKeys();
   }
 
   update() {
-    const speed = 200;
+    const speed = PlayerConfig.baseSpeed;
+
+    let velocity = {
+      x: 0,
+      y: 0,
+    };
 
     if (this.cursors?.left?.isDown) {
-      this.setVelocityX(-speed);
+      velocity.x = -speed;
     } else if (this.cursors?.right?.isDown) {
-      this.setVelocityX(speed);
-    } else {
-      this.setVelocityX(0);
+      velocity.x = speed;
     }
 
     if (this.cursors?.up?.isDown) {
-      this.setVelocityY(-speed);
+      velocity.y = -speed;
     } else if (this.cursors?.down?.isDown) {
-      this.setVelocityY(speed);
-    } else {
-      this.setVelocityY(0);
+      velocity.y = speed;
     }
+
+    this.setVelocity(velocity.x, velocity.y);
   }
 }
