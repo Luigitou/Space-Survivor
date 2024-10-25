@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { BasicEntity } from '~/objects';
+import { Enemy } from '~/objects/Enemy';
 
 export class MainScene extends Phaser.Scene {
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
+  private enemies: Array<Enemy> = [];
 
   constructor() {
     super('MainScene');
@@ -12,6 +14,7 @@ export class MainScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON('map', 'assets/map/Map.json');
     this.load.image('tiles', 'assets/map/Map-tileset.png');
+    this.load.image('enemy', 'assets/sprites/enemy.png');
   }
 
   create() {
@@ -26,26 +29,33 @@ export class MainScene extends Phaser.Scene {
       console.error('Unable to load tileset');
     }
 
-    // ----- Création du joueur
-    this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
-
     // ----- Ajout des collisions
     this.collisionLayer.map((layer) => {
       if (layer) {
         layer.setCollisionByExclusion([-1]);
-        this.physics.add.collider(this.player, layer);
+        this.matter.world.convertTilemapLayer(layer);
       }
+    });
+
+    // ----- Création du joueur
+    this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
+
+    // ----- Création des ennemis
+    this.enemies.push(new Enemy(this, 1100, map.heightInPixels - 200));
+    this.enemies.push(new Enemy(this, 1200, map.heightInPixels - 200));
+    this.enemies.push(new Enemy(this, 1300, map.heightInPixels - 200));
+
+    this.enemies.forEach((enemy) => {
+      enemy.setTarget(this.player);
     });
 
     // ----- Ajout de la camera
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
-
-    // Réglage du monde
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   }
 
   update() {
     this.player.update();
+    this.enemies.forEach((enemy) => enemy.update());
   }
 }
