@@ -10,9 +10,9 @@ export class MenuScene extends Phaser.Scene {
   preload() {
     this.load.image('space', 'assets/backgroundMainMenu.png');
     this.load.image('star', 'assets/star.png');
-    this.load.audio('titleScreen', '/audio/titleScreen.ogg');
-    this.load.audio('buttonHover', '/audio/hover.wav');
-    this.load.audio('buttonClick', '/audio/click.wav');
+    this.load.audio('titleScreen', 'audio/titleScreen.ogg');
+    this.load.audio('buttonHover', 'audio/hover.wav');
+    this.load.audio('buttonClick', 'audio/click.wav');
     this.load.image('titleImage', 'assets/logo.png');
   }
 
