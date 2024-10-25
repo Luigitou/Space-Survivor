@@ -1,0 +1,17 @@
+[ENG]
+These files are intended to be loaded on the Piskel website. 
+Piskel is an online sprite editor that allows you to create 
+pixel art animations. Use these files to import sprites and 
+modify them as needed.
+
+[FR]
+Ces fichiers sont destinés à être chargés sur le site Piskel. 
+Piskel est un éditeur de sprites en ligne qui permet de créer 
+des animations pixel art. Utilisez ces fichiers pour importer 
+des sprites et les modifier selon vos besoins.
+
+[ES]
+Estos archivos están destinados a ser cargados en el sitio web 
+de Piskel. Piskel es un editor de sprites en línea que te 
+permite crear animaciones de arte pixelado. Usa estos archivos 
+para importar sprites y modificarlos según sea necesario.

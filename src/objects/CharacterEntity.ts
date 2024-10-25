@@ -1,22 +1,20 @@
-export class BasicEntity extends Phaser.Physics.Arcade.Sprite {
+import Phaser from 'phaser';
+
+export class CharacterEntity extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'basic-entity');
-
+    super(scene, x, y, 'charac-entity-down');
     scene.add.existing(this);
     scene.physics.add.existing(this);
-
     this.displayWidth = 64;
     this.displayHeight = 64;
     this.setCollideWorldBounds(true);
-
     this.cursors = scene.input.keyboard?.createCursorKeys();
   }
 
   update() {
     const speed = 200;
-
     if (this.cursors?.left?.isDown) {
       this.anims.play('walk-left', true);
       this.setVelocityX(-speed);
@@ -33,7 +31,6 @@ export class BasicEntity extends Phaser.Physics.Arcade.Sprite {
 
     if (this.cursors?.up?.isDown && this.cursors?.left?.isDown) {
       this.anims.play('walk-up', true);
-      console.log('up-left');
       this.setVelocityX(-speed);
       this.setVelocityY(-speed);
     } else if (this.cursors?.up?.isDown && this.cursors?.right?.isDown) {

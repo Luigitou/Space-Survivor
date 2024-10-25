@@ -1,21 +1,26 @@
 import Phaser from 'phaser';
-import { BasicEntity } from '~/objects';
+import { CharacterEntity } from '~/objects/CharacterEntity';
+import {
+  loadCharacterAnimations,
+  createCharacterAnimations,
+} from '~/animations/characterAnimations';
 
 export class MainScene extends Phaser.Scene {
   private readonly mapWidth = 2000;
   private readonly mapHeight = 2000;
-  private player!: BasicEntity;
+  private player!: CharacterEntity;
 
   constructor() {
     super('MainScene');
   }
 
   preload() {
+    loadCharacterAnimations(this);
     this.load.image('space-background', 'assets/game-background.jpg');
   }
 
   create() {
-    // ----- Creation de la map
+    createCharacterAnimations(this);
 
     const imageWidth = 1920;
     const imageHeight = 1200;
@@ -26,12 +31,10 @@ export class MainScene extends Phaser.Scene {
       this.mapHeight,
       'space-background'
     );
-
     spaceBackground.setOrigin(0, 0);
     spaceBackground.tileScaleX = imageWidth / spaceBackground.width;
     spaceBackground.tileScaleY = imageHeight / spaceBackground.height;
 
-    // ------ Création de la zone de jeu
     const playableArea = this.add.rectangle(
       100,
       100,
@@ -40,7 +43,6 @@ export class MainScene extends Phaser.Scene {
       0xffffff,
       0.1
     );
-
     playableArea.setOrigin(0, 0);
     this.physics.world.setBounds(
       playableArea.x,
@@ -49,9 +51,11 @@ export class MainScene extends Phaser.Scene {
       playableArea.height
     );
 
-    // ----- Création du joueur
-    this.player = new BasicEntity(this, this.mapWidth / 2, this.mapHeight / 2);
-
+    this.player = new CharacterEntity(
+      this,
+      this.mapWidth / 2,
+      this.mapHeight / 2
+    );
     this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight);
     this.cameras.main.startFollow(this.player);
   }
