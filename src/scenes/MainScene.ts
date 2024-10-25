@@ -20,18 +20,8 @@ export class MainScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('Spaceship', 'tiles');
     if (tileset) {
       map.createLayer('Ground', tileset, 0, 0);
-      const wallsLayer = map.createLayer('Walls', tileset, 0, 0);
-      const interiorWallsLayer = map.createLayer(
-        'Interior Walls',
-        tileset,
-        0,
-        0
-      );
-      this.collisionLayer = [
-        ...this.collisionLayer,
-        wallsLayer,
-        interiorWallsLayer,
-      ];
+      this.collisionLayer.push(map.createLayer('Walls', tileset, 0, 0));
+      this.collisionLayer.push(map.createLayer('Objects', tileset, 0, 0));
     } else {
       console.error('Unable to load tileset');
     }
@@ -40,7 +30,7 @@ export class MainScene extends Phaser.Scene {
     this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
 
     // ----- Ajout des collisions
-    this.collisionLayer.forEach((layer) => {
+    this.collisionLayer.map((layer) => {
       if (layer) {
         layer.setCollisionByExclusion([-1]);
         this.physics.add.collider(this.player, layer);
