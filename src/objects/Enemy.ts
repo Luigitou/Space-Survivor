@@ -13,7 +13,7 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
     scene.add.existing(this);
 
     this.setDisplaySize(EnemyConfig.size, EnemyConfig.size);
-    this.setCircle(12);
+    this.setCircle(24);
 
     this.setFixedRotation();
     this.setFrictionAir(EnemyConfig.airFriction);
