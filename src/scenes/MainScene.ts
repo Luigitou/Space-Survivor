@@ -44,7 +44,7 @@ export class MainScene extends Phaser.Scene {
 
     // ----- Configuration du wrapper de l'algorithme du chemin le plus court (Astar)
     this.easystarManager = new EasyStarManager();
-    this.easystarManager.initializeGrid(map, 'Walls', [0, 999999999]);
+    this.easystarManager.initializeGrid(map, ['Walls', 'Objects']);
 
     // ----- Création des ennemis
     this.enemies.push(new Enemy(this, 1100, map.heightInPixels - 200));

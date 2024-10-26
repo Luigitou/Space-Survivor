@@ -5,7 +5,6 @@ import { EasyStarManager } from '~/utils';
 export class Enemy extends Phaser.Physics.Matter.Sprite {
   private target!: BasicEntity;
   private pathGraphics!: Phaser.GameObjects.Graphics;
-  private directionGraphics!: Phaser.GameObjects.Graphics;
   private path: { x: number; y: number }[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -14,7 +13,7 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
     scene.add.existing(this);
 
     this.setDisplaySize(EnemyConfig.size, EnemyConfig.size);
-    this.setCircle(EnemyConfig.size / 2);
+    this.setCircle(12);
 
     this.setFixedRotation();
     this.setFrictionAir(EnemyConfig.airFriction);
@@ -25,11 +24,6 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
     this.pathGraphics = scene.add.graphics({
       lineStyle: { width: 2, color: 0x00ff00 },
       fillStyle: { color: 0xff0000 },
-    });
-
-    // Création d'un graphique pour visualiser le vecteur de direction
-    this.directionGraphics = scene.add.graphics({
-      lineStyle: { width: 2, color: 0x0000ff }, // Bleu pour le vecteur de direction
     });
   }
 
@@ -54,23 +48,22 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
         this.visualizePath();
 
         // Utilise le deuxième point du chemin car le premier est la position actuelle
-        const nextStep = path[2];
-        const targetPosX = nextStep.x * 32;
-        const targetPosY = nextStep.y * 32;
-
-        // Calcule la direction vers le prochain point
-        const direction = new Phaser.Math.Vector2(
-          targetPosX - this.body!.position.x,
-          targetPosY - this.body!.position.y
-        ).normalize();
+        const nextStep = path[1];
+        const direction = Phaser.Math.Angle.Between(
+          this.x,
+          this.y,
+          nextStep.x * 32,
+          nextStep.y * 32
+        );
         const speed = EnemyConfig.baseSpeed;
 
         // Applique la vélocité en direction du prochain point
-        this.visualizeDirection(direction);
-        this.setVelocity(direction.x * speed, direction.y * speed); // TODO: Vérifier si la vitesse est correcte
+        this.setVelocity(
+          Math.cos(direction) * speed,
+          Math.sin(direction) * speed
+        );
       } else {
         // Aucune destination trouvée ou pas de chemin
-        console.log('No path found');
         this.setVelocity(0, 0);
         this.clearPathVisualization();
       }
@@ -110,50 +103,5 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
 
   private clearPathVisualization() {
     this.pathGraphics.clear();
-  }
-
-  private visualizeDirection(direction: Phaser.Math.Vector2) {
-    // Efface le graphique précédent
-    this.directionGraphics.clear();
-
-    // Position de départ du vecteur (position de l'ennemi)
-    const startX = this.body!.position.x;
-    const startY = this.body!.position.y;
-
-    // Calcul de la position de fin du vecteur
-    const length = 50; // Longueur du vecteur pour la visualisation
-    const endX = startX + direction.x * length;
-    const endY = startY + direction.y * length;
-
-    // Dessine la ligne du vecteur de direction
-    this.directionGraphics.lineBetween(startX, startY, endX, endY);
-
-    // Optionnel : Dessine une flèche au bout du vecteur
-    this.drawArrowHead(startX, startY, endX, endY);
-  }
-
-  // Méthode optionnelle pour dessiner une flèche au bout du vecteur
-  private drawArrowHead(
-    fromX: number,
-    fromY: number,
-    toX: number,
-    toY: number
-  ) {
-    const angle = Math.atan2(toY - fromY, toX - fromX);
-    const arrowLength = 10; // Taille de la flèche
-    const arrowAngle = Math.PI / 6; // Angle entre la ligne et les côtés de la flèche
-
-    const leftX = toX - arrowLength * Math.cos(angle - arrowAngle);
-    const leftY = toY - arrowLength * Math.sin(angle - arrowAngle);
-
-    const rightX = toX - arrowLength * Math.cos(angle + arrowAngle);
-    const rightY = toY - arrowLength * Math.sin(angle + arrowAngle);
-
-    this.directionGraphics.beginPath();
-    this.directionGraphics.moveTo(toX, toY);
-    this.directionGraphics.lineTo(leftX, leftY);
-    this.directionGraphics.moveTo(toX, toY);
-    this.directionGraphics.lineTo(rightX, rightY);
-    this.directionGraphics.strokePath();
   }
 }
