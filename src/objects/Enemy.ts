@@ -52,8 +52,8 @@ export class Enemy extends Phaser.Physics.Matter.Sprite {
         const direction = Phaser.Math.Angle.Between(
           this.x,
           this.y,
-          nextStep.x * 32,
-          nextStep.y * 32
+          nextStep.x * 32 + 16,
+          nextStep.y * 32 + 16
         );
         const speed = EnemyConfig.baseSpeed;
 
