@@ -6,6 +6,7 @@ export class EasyStarManager {
 
   public constructor() {
     this.easystar = new EasyStar.js();
+    this.easystar.enableDiagonals();
   }
 
   public initializeGrid(
@@ -42,9 +43,6 @@ export class EasyStarManager {
 
     // Définis quelles tuiles sont traversables
     this.easystar.setAcceptableTiles(acceptableTiles);
-
-    // Optionnel : Permet le mouvement diagonal
-    this.easystar.enableDiagonals();
   }
 
   public findPath(
