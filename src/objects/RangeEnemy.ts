@@ -12,9 +12,25 @@ export class RangeEnemy extends BasicEnemy {
   public update(easystarManager: EasyStarManager) {
     if (this.checkAttack() && this.hasLineOfSight() && this.canShoot) {
       this.fireProjectile();
+    } else if (this.checkIfRangeAttack()) {
+      this.setVelocity(0, 0);
     } else {
       super.update(easystarManager);
     }
+  }
+
+  private checkIfRangeAttack() {
+    if (!this.target) return;
+    const distance = Phaser.Math.Distance.Between(
+      this.x,
+      this.y,
+      this.target.x,
+      this.target.y
+    );
+
+    return (
+      distance < RangeEnemyConfig.attackRange * 0.8 && this.hasLineOfSight()
+    );
   }
 
   private checkAttack() {
@@ -30,10 +46,6 @@ export class RangeEnemy extends BasicEnemy {
     if (distance < RangeEnemyConfig.attackRange) {
       return true;
     }
-  }
-
-  private hasLineOfSight() {
-    return true;
   }
 
   private fireProjectile() {

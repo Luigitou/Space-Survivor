@@ -5,13 +5,13 @@ export const EnemyConfig = {
   airFriction: 0.05,
   bounce: 1,
   mass: 1,
-  showPath: false,
+  showPath: true,
 };
 
 export const CaCEnemyConfig = {};
 
 export const RangeEnemyConfig = {
   projectileSpeed: 10,
-  attackRange: 300,
+  attackRange: 600,
   attackRate: 1000,
 };
