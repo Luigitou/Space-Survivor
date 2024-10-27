@@ -2,6 +2,7 @@ import { PlayerConfig } from '~/config';
 
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+  private health: number = PlayerConfig.baseHealth;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, 'basic-entity');
@@ -39,5 +40,14 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     }
 
     this.setVelocity(velocity.x, velocity.y);
+  }
+
+  public takeDamage(damage: number) {
+    this.health -= damage;
+    console.log(this.health);
+
+    if (this.health <= 0) {
+      console.log('Player is dead');
+    }
   }
 }

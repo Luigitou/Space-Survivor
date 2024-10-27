@@ -1,4 +1,5 @@
 export const PlayerConfig = {
+  baseHealth: 5,
   baseSpeed: 3,
   size: 32,
   bounce: 0,

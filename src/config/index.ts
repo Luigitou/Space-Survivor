@@ -1,4 +1,6 @@
 export { gameConfig } from './gameConfig';
-export { EnemyConfig } from './enemy.config';
+export { EnemyConfig, CaCEnemyConfig, RangeEnemyConfig } from './enemy.config';
 export { PlayerConfig } from './player.config';
 export { menuConfig } from './menuConfig';
+export { MapConfig } from './map.config';
+export { ProjectileConfig } from './projectiles.config';

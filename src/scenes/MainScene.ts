@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
-import { BasicEntity } from '~/objects';
-import { Enemy } from '~/objects/Enemy';
+import { BasicEntity, RangeEnemy } from '~/objects';
+import { BasicEnemy } from '~/objects/BasicEnemy';
 import { EasyStarManager } from '~/utils';
 
 export class MainScene extends Phaser.Scene {
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
-  private enemies: Array<Enemy> = [];
+  private enemies: Array<BasicEnemy> = [];
   private easystarManager!: EasyStarManager;
 
   constructor() {
@@ -17,6 +17,7 @@ export class MainScene extends Phaser.Scene {
     this.load.tilemapTiledJSON('map', 'assets/map/Map.json');
     this.load.image('tiles', 'assets/map/Map-tileset.png');
     this.load.image('enemy', 'assets/sprites/enemy.png');
+    this.load.image('enemyLaser', 'assets/sprites/laser-sprites/02.png');
   }
 
   create() {
@@ -47,9 +48,9 @@ export class MainScene extends Phaser.Scene {
     this.easystarManager.initializeGrid(map, ['Walls', 'Objects']);
 
     // ----- Création des ennemis
-    this.enemies.push(new Enemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new Enemy(this, 1200, map.heightInPixels - 200));
-    this.enemies.push(new Enemy(this, 1300, map.heightInPixels - 200));
+    this.enemies.push(new RangeEnemy(this, 1100, map.heightInPixels - 200));
+    this.enemies.push(new RangeEnemy(this, 1200, map.heightInPixels - 200));
+    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
 
     this.enemies.forEach((enemy) => {
       enemy.setTarget(this.player);
