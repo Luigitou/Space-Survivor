@@ -6,6 +6,7 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, 'basic-entity');
+    this.setActive(true);
 
     scene.add.existing(this);
 
@@ -46,8 +47,10 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     this.health -= damage;
     console.log(this.health);
 
-    if (this.health <= 0) {
+    if (this.health <= 0 && !PlayerConfig.godMode) {
       console.log('Player is dead');
+      this.setActive(false);
+      this.setVisible(false);
     }
   }
 }

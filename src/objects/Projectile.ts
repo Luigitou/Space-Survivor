@@ -27,9 +27,7 @@ export class Projectile extends Phaser.Physics.Matter.Sprite {
     this.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     this.rotation = angle;
 
-    this.scene.time.delayedCall(ProjectileConfig.noHitBoxDelay, () =>
-      this.setOnCollide(this.handleCollision.bind(this))
-    );
+    this.setOnCollide(this.handleCollision.bind(this));
   }
 
   private handleCollision(

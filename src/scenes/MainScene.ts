@@ -62,6 +62,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    if (!this.player.active) return;
     this.player.update();
     this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
   }
