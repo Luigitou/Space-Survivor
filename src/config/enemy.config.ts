@@ -8,7 +8,10 @@ export const EnemyConfig = {
   showPath: true,
 };
 
-export const CaCEnemyConfig = {};
+export const CaCEnemyConfig = {
+  attackRange: 50,
+  attackRate: 1500,
+};
 
 export const RangeEnemyConfig = {
   projectileSpeed: 10,
