@@ -8,6 +8,8 @@ export class MainScene extends Phaser.Scene {
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
   private enemies: Array<BasicEnemy> = [];
   private easystarManager!: EasyStarManager;
+  private leftMouseDown: boolean = false;
+  private lastShotTime?: number;
 
   constructor() {
     super('MainScene');
@@ -18,6 +20,8 @@ export class MainScene extends Phaser.Scene {
     this.load.image('tiles', 'assets/map/Map-tileset.png');
     this.load.image('enemy', 'assets/sprites/enemy.png');
     this.load.image('enemyLaser', 'assets/sprites/laser-sprites/02.png');
+    this.load.image('playerLaser', 'assets/sprites/laser-sprites/06.png');
+    this.load.audio('laserSound', 'audio/blaster.mp3');
   }
 
   create() {
@@ -43,6 +47,17 @@ export class MainScene extends Phaser.Scene {
     // ----- Création du joueur
     this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
 
+    this.input.on('pointerdown', (pointer) => {
+      if (pointer.leftButtonDown()) {
+        this.leftMouseDown = true;
+      }
+    });
+    this.input.on('pointerup', (pointer) => {
+      if (pointer.leftButtonReleased()) {
+        this.leftMouseDown = false;
+      }
+    });
+
     // ----- Configuration du wrapper de l'algorithme du chemin le plus court (Astar)
     this.easystarManager = new EasyStarManager();
     this.easystarManager.initializeGrid(map, ['Walls', 'Objects']);
@@ -64,6 +79,13 @@ export class MainScene extends Phaser.Scene {
   update() {
     if (!this.player.active) return;
     this.player.update();
+    this.enemies = this.enemies.filter((enemy) => enemy.active);
     this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
+    if (this.leftMouseDown) {
+      if (!this.lastShotTime || this.time.now - this.lastShotTime > 500) {
+        this.player.shoot();
+        this.lastShotTime = this.time.now;
+      }
+    }
   }
 }

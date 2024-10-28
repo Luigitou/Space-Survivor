@@ -7,3 +7,9 @@ export const PlayerConfig = {
   airFriction: 0.05,
   godMode: true,
 };
+
+export const PlaceyerShootConfig = {
+  projectileSpeed: 10,
+  attackRange: 300,
+  attackRate: 1000,
+};

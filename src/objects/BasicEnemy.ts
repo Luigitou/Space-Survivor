@@ -5,6 +5,7 @@ import { EasyStarManager } from '~/utils';
 export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected target!: BasicEntity;
   private pathGraphics!: Phaser.GameObjects.Graphics;
+  private health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -101,6 +102,19 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
         );
       }
     });
+  }
+
+  // Method to put damages on the enemy and kill it if health is 0
+  public takeDamage(damage: number) {
+    this.health -= damage;
+    console.log(this.health);
+
+    if (this.health <= 0) {
+      console.log('Enemy was killed');
+      this.setActive(false);
+      this.setVisible(false);
+      this.destroy();
+    }
   }
 
   private clearPathVisualization() {

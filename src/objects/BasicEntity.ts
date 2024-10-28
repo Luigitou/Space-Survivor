@@ -1,8 +1,11 @@
 import { PlayerConfig } from '~/config';
+import { PlayerProjectile } from './PlayerProjectiles';
+import { BasicEnemy } from './BasicEnemy';
 
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private health: number = PlayerConfig.baseHealth;
+  protected target: { x: number; y: number } = { x: 0, y: 0 };
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, 'basic-entity');
@@ -52,5 +55,9 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       this.setActive(false);
       this.setVisible(false);
     }
+  }
+
+  public shoot() {
+    new PlayerProjectile(this.scene, this.x, this.y);
   }
 }
