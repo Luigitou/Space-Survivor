@@ -9,6 +9,7 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   private pathGraphics!: Phaser.GameObjects.Graphics;
   private health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
+  private nextStep: { x: number; y: number } | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, 'enemy');
@@ -38,7 +39,9 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
 
   public update(easystarManager: EasyStarManager) {
     if (this.target) {
-      this.moveTowards(easystarManager);
+      const nextStep = this.nextTile(easystarManager);
+      if (!this.nextStep) return;
+      this.moveTowards(this.nextStep);
     } else {
       this.setVelocity(1, 0);
     }
@@ -47,6 +50,19 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   public destroy(fromScene?: boolean) {
     EnemyConfig.showPath && this.pathGraphics.destroy();
     super.destroy(fromScene);
+  }
+
+  protected moveTowards(nextStep: { x: number; y: number }) {
+    const direction = Phaser.Math.Angle.Between(
+      this.x,
+      this.y,
+      nextStep.x * MapConfig.tileSize + MapConfig.tileSize / 2,
+      nextStep.y * MapConfig.tileSize + MapConfig.tileSize / 2
+    );
+    const speed = EnemyConfig.baseSpeed;
+
+    // Apply velocity in direction of next point
+    this.setVelocity(Math.cos(direction) * speed, Math.sin(direction) * speed);
   }
 
   protected hasLineOfSight(): boolean {
@@ -84,7 +100,7 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   }
 
   // New method to move the player towards a target
-  protected moveTowards(easystarManager: EasyStarManager) {
+  protected nextTile(easystarManager: EasyStarManager) {
     const startX = Math.floor(this.body!.position.x / MapConfig.tileSize);
     const startY = Math.floor(this.body!.position.y / MapConfig.tileSize);
     const endX = Math.floor(this.target.body!.position.x / MapConfig.tileSize);
@@ -96,24 +112,11 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
         EnemyConfig.showPath && this.visualizePath();
 
         // Use the second point of the path because the first is the current position
-        const nextStep = path[1];
-        const direction = Phaser.Math.Angle.Between(
-          this.x,
-          this.y,
-          nextStep.x * MapConfig.tileSize + MapConfig.tileSize / 2,
-          nextStep.y * MapConfig.tileSize + MapConfig.tileSize / 2
-        );
-        const speed = EnemyConfig.baseSpeed;
-
-        // Apply velocity in direction of next point
-        this.setVelocity(
-          Math.cos(direction) * speed,
-          Math.sin(direction) * speed
-        );
+        this.nextStep = path[EnemyConfig.nextStepTileAmount];
       } else {
         // No path found or no path
-        this.setVelocity(0, 0);
         this.clearPathVisualization();
+        this.nextStep = null;
       }
     });
   }
