@@ -179,6 +179,44 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     );
   }
 
+  protected hasLineOfSight(): boolean {
+    const startPoint = { x: this.x, y: this.y };
+    const endPoint = { x: this.target.x, y: this.target.y };
+
+    // @ts-ignore
+    const collisions = Phaser.Physics.Matter.Matter.Query.ray(
+      // @ts-ignore
+      this.scene.matter.world.localWorld.bodies,
+      startPoint,
+      endPoint
+    );
+
+    // Si aucune collision ou seulement la collision avec le joueur;
+    if (collisions.length === 0) {
+      return true;
+    }
+
+    // Filtre les collisions, en vérifiant qu'il n'y a pas de mur ou d'obstacle
+    for (const collision of collisions) {
+      const hitObject = collision.body;
+
+      // Vérifie si l'objet touché est un obstacle (ex. : mur)
+      if (
+        hitObject.gameObject &&
+        hitObject.gameObject instanceof Phaser.Physics.Matter.TileBody
+      ) {
+        return false;
+      }
+    }
+
+    // Aucun obstacle trouvé entre l'ennemi et le joueur
+    return true;
+  }
+
+  private getInterestMap() {}
+
+  private getDangerMap() {}
+
   private visualizePath() {
     this.pathGraphics.clear();
 

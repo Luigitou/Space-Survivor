@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BasicEntity, CaCEnemy, BasicEnemy, RangeEnemy } from '~/objects';
+import { BasicEnemy, BasicEntity, CaCEnemy } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
 
@@ -94,14 +94,6 @@ export class MainScene extends CustomScene {
 
     // ----- Création des ennemis
     this.enemies.push(new CaCEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1200, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1200, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
 
     this.enemies.forEach((enemy) => {
       enemy.setTarget(this.player);
