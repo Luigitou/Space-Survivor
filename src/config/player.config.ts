@@ -1,4 +1,8 @@
 export const PlayerConfig = {
+  minLevel: 1,
+  maxLevel: 100,
+  xpBarMinValue: 0,
+  xpBarMaxValue: 100,
   baseHealth: 5,
   baseSpeed: 3,
   size: 32,

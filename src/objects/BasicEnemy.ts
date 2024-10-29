@@ -1,9 +1,11 @@
 import { BasicEntity } from '~/objects/BasicEntity';
 import { EnemyConfig, MapConfig } from '~/config';
 import { EasyStarManager } from '~/utils';
+import { Xp } from './Xp';
 
 export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected target!: BasicEntity;
+  protected xpValue!: string;
   private pathGraphics!: Phaser.GameObjects.Graphics;
   private health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
@@ -110,14 +112,19 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     console.log(this.health);
 
     if (this.health <= 0) {
-      console.log('Enemy was killed');
       this.setActive(false);
       this.setVisible(false);
+      this.dropXP();
       this.destroy();
     }
   }
 
   private clearPathVisualization() {
     this.pathGraphics.clear();
+  }
+
+  private dropXP() {
+    const xp = new Xp(this.scene, this.x, this.y, 'xp1');
+    this.scene.add.existing(xp);
   }
 }

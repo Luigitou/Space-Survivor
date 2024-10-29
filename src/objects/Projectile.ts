@@ -7,7 +7,6 @@ export class Projectile extends Phaser.Physics.Matter.Sprite {
     x: number,
     y: number,
     target: { x: number; y: number }
-    // TODO: Ajouter le laser pour le joueur
   ) {
     super(scene.matter.world, x, y, 'enemyLaser');
 
