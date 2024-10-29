@@ -5,3 +5,4 @@ export { menuConfig } from './menuConfig';
 export { MapConfig } from './map.config';
 export { ProjectileConfig } from './projectiles.config';
 export { XpConfig } from './xp.config';
+export { SpawnConfig } from './SpawnConfig';
