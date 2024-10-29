@@ -1,10 +1,13 @@
 import { BasicEntity } from '~/objects/BasicEntity';
 import { EnemyConfig, MapConfig } from '~/config';
 import { EasyStarManager } from '~/utils';
+import { Xp } from './Xp';
 
 export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected target!: BasicEntity;
+  protected xpValue!: string;
   private pathGraphics!: Phaser.GameObjects.Graphics;
+  private health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -137,7 +140,25 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     });
   }
 
+  // Method to put damages on the enemy and kill it if health is 0
+  public takeDamage(damage: number) {
+    this.health -= damage;
+    console.log(this.health);
+
+    if (this.health <= 0) {
+      this.setActive(false);
+      this.setVisible(false);
+      this.dropXP();
+      this.destroy();
+    }
+  }
+
   private clearPathVisualization() {
     this.pathGraphics.clear();
+  }
+
+  private dropXP() {
+    const xp = new Xp(this.scene, this.x, this.y, 'xp1');
+    this.scene.add.existing(xp);
   }
 }

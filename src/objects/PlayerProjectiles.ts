@@ -1,14 +1,11 @@
-import { ProjectileConfig, RangeEnemyConfig } from '~/config';
-import { BasicEntity } from '~/objects/BasicEntity';
+import { ProjectileConfig } from '~/config';
+import { PlaceyerShootConfig } from '~/config/player.config';
+import { BasicEnemy } from '~/objects/BasicEnemy';
 
-export class Projectile extends Phaser.Physics.Matter.Sprite {
-  constructor(
-    scene: Phaser.Scene,
-    x: number,
-    y: number,
-    target: { x: number; y: number }
-  ) {
-    super(scene.matter.world, x, y, 'enemyLaser');
+export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
+  constructor(scene: Phaser.Scene, x: number, y: number) {
+    super(scene.matter.world, x, y, 'playerLaser');
+    scene.sound.play('laserSound');
 
     scene.add.existing(this);
     this.setDisplaySize(
@@ -20,7 +17,12 @@ export class Projectile extends Phaser.Physics.Matter.Sprite {
     this.setFixedRotation();
     this.setSensor(true);
 
-    const speed = RangeEnemyConfig.projectileSpeed;
+    const speed = PlaceyerShootConfig.projectileSpeed;
+
+    // Get the target position baseed on the mouse pointer
+    const pointer = scene.input.activePointer;
+    const target = { x: pointer.worldX, y: pointer.worldY };
+
     const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
 
     this.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
@@ -39,7 +41,7 @@ export class Projectile extends Phaser.Physics.Matter.Sprite {
       if (otherBody.gameObject) {
         const targetObject = otherBody.gameObject;
 
-        if (targetObject instanceof BasicEntity) {
+        if (targetObject instanceof BasicEnemy) {
           if (!targetObject.scene) return;
           targetObject.takeDamage(1);
           this.destroy();

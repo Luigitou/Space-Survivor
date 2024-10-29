@@ -1,4 +1,5 @@
 export const EnemyConfig = {
+  baseHealth: 5,
   baseSpeed: 2,
   sizeSprite: 48,
   sizeHitbox: 24,
