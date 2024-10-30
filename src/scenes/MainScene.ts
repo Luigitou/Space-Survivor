@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { BasicEntity, CaCEnemy, BasicEnemy, RangeEnemy } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
+import { EnemySpawnPoint, EnemyType } from '~/objects/EnemySpawnPoint';
+import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
+import { SpawnConfig } from '~/config';
 
 export class MainScene extends CustomScene {
   private player!: BasicEntity;
@@ -12,6 +15,9 @@ export class MainScene extends CustomScene {
   private lastShotTime?: number;
   private timerText?: Phaser.GameObjects.Text;
   private initialTime: number = 0;
+  private spawnPoints: EnemySpawnPoint[] = [];
+  private spawnTimer?: Phaser.Time.TimerEvent;
+  private enemyCountText?: Phaser.GameObjects.Text;
 
   constructor() {
     super({
@@ -92,24 +98,83 @@ export class MainScene extends CustomScene {
     this.easystarManager = new EasyStarManager();
     this.easystarManager.initializeGrid(map, ['Walls', 'Objects']);
 
-    // ----- Création des ennemis
-    this.enemies.push(new CaCEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1200, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1100, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1200, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
-    this.enemies.push(new RangeEnemy(this, 1300, map.heightInPixels - 200));
+    // ----- Création des points d'apparition
+    this.createSpawnPoints(map);
 
-    this.enemies.forEach((enemy) => {
-      enemy.setTarget(this.player);
+    // Création initiale des ennemis
+    this.spawnPoints.forEach((spawnPoint) => {
+      const enemies = spawnPoint.spawnEnemies();
+      enemies.forEach((enemy) => {
+        enemy.setTarget(this.player);
+        this.enemies.push(enemy);
+      });
     });
 
     // ----- Ajout de la camera
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
+
+    // Configurer le timer de spawn
+    this.spawnTimer = this.time.addEvent({
+      delay: SpawnConfig.spawnDelay,
+      callback: this.spawnEnemies,
+      callbackScope: this,
+      loop: true,
+    });
+
+    if (SpawnConfig.debug.showEnemyCount) {
+      this.enemyCountText = this.add.text(16, 16, '', {
+        color: '#ffffff',
+        backgroundColor: '#000000',
+      });
+      this.enemyCountText.setScrollFactor(0);
+      this.updateEnemyCountText();
+    }
+  }
+
+  private createSpawnPoints(map: Phaser.Tilemaps.Tilemap) {
+    const spawnLayer = map.getObjectLayer('SpawnPoints');
+
+    if (spawnLayer && spawnLayer.objects) {
+      spawnLayer.objects.forEach((spawnObject) => {
+        const spawnPoint = EnemySpawnFactory.createSpawnPoint(
+          this,
+          spawnObject.x || 0,
+          spawnObject.y || 0,
+          (spawnObject.properties?.find((p) => p.name === 'enemyType')?.value ||
+            'basic') as EnemyType
+        );
+        this.spawnPoints.push(spawnPoint);
+      });
+    }
+  }
+
+  private spawnEnemies() {
+    if (this.enemies.length >= SpawnConfig.maxEnemies) return;
+
+    this.spawnPoints.forEach((spawnPoint) => {
+      const enemy = spawnPoint.spawnEnemy();
+      if (enemy) {
+        enemy.setTarget(this.player);
+        this.enemies.push(enemy);
+
+        enemy.once('destroy', () => {
+          this.enemies = this.enemies.filter((e) => e !== enemy);
+          spawnPoint.onEnemyDeath();
+          this.updateEnemyCountText();
+        });
+      }
+    });
+
+    this.updateEnemyCountText();
+  }
+
+  private updateEnemyCountText() {
+    if (this.enemyCountText) {
+      this.enemyCountText.setText(
+        `Ennemis: ${this.enemies.length}/${SpawnConfig.maxEnemies}`
+      );
+    }
   }
 
   updateTimer() {
@@ -134,5 +199,11 @@ export class MainScene extends CustomScene {
         this.lastShotTime = this.time.now;
       }
     }
+  }
+
+  destroy() {
+    this.spawnTimer?.destroy();
+    this.enemyCountText?.destroy();
+    this.spawnPoints.forEach((point) => point.destroy());
   }
 }
