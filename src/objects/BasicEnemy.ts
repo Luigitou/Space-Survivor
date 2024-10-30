@@ -1,7 +1,7 @@
 // BasicEnemy.ts
 
 import { BasicEntity } from '~/objects/BasicEntity';
-import { EnemyConfig } from '~/config';
+import { EnemyConfig, MapConfig } from '~/config';
 import { VectorField } from '~/utils';
 import { Xp } from './Xp';
 
@@ -10,8 +10,12 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected xpValue!: string;
   private health: number = EnemyConfig.baseHealth;
   private directionGraphics!: Phaser.GameObjects.Graphics;
-  private previousDirection: Phaser.Math.Vector2 | null = null;
   private vectorField: VectorField;
+  private sensors: {
+    sensor: MatterJS.BodyType;
+    direction: Phaser.Math.Vector2;
+  }[] = [];
+  private avoidance: Array<Phaser.Math.Vector2> = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -37,6 +41,7 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     });
 
     this.vectorField = vectorField;
+    this.createSensors();
   }
 
   public setTarget(target: BasicEntity) {
@@ -52,14 +57,8 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
         this.setVelocity(0, 0);
         return;
       }
-
-      // Calculer la force d'évitement
-      const avoidance = this.calculateAvoidance(enemies);
-
-      // Combiner la direction du champ vectoriel avec la force d'évitement
-      const combinedDirection = direction.clone().add(avoidance).normalize();
-
-      this.moveInDirection(combinedDirection);
+      this.calculateAvoidance();
+      this.moveInDirection(direction);
     } else {
       this.setVelocity(0, 0);
     }
@@ -86,18 +85,51 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     // Obtenir le vecteur à la position actuelle
     const direction = this.vectorField.getVectorAt(this.x, this.y);
 
+    // Combiner la direction du champ vectoriel avec la force d'évitement
+    //const combinedDirection = direction.clone().add(avoidance).normalize();
+
     if (direction.length() === 0) {
       return null;
     }
 
-    return direction.normalize();
+    return direction;
   }
 
   protected moveInDirection(direction: Phaser.Math.Vector2) {
     const speed = EnemyConfig.baseSpeed;
 
+    let combinedDirection = direction;
+    let avoidanceVector: Phaser.Math.Vector2 | null = null;
+
+    if (this.avoidance.length > 0) {
+      let combinedX = 0;
+      let combinedY = 0;
+      this.avoidance.forEach((avoidance) => {
+        combinedX += avoidance.x;
+        combinedY += avoidance.y;
+      });
+      avoidanceVector = new Phaser.Math.Vector2(
+        combinedX,
+        combinedY
+      ).normalize();
+      avoidanceVector.scale(1.25);
+      combinedDirection = combinedDirection
+        .clone()
+        .add(avoidanceVector)
+        .normalize();
+    }
+
+    if (avoidanceVector) {
+      console.log('Combined direction:', combinedDirection);
+      this.setVelocity(
+        combinedDirection.x * speed,
+        combinedDirection.y * speed
+      );
+    } else {
+      this.setVelocity(direction.x * speed, direction.y * speed);
+    }
+
     // Appliquer la vitesse
-    this.setVelocity(direction.x * speed, direction.y * speed);
 
     // Clear previous direction graphics
     this.directionGraphics.clear();
@@ -106,41 +138,97 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     this.directionGraphics.lineBetween(
       this.x,
       this.y,
-      this.x + direction.x * 50,
-      this.y + direction.y * 50
+      this.x + combinedDirection.x * 50,
+      this.y + combinedDirection.y * 50
     );
   }
 
-  /**
-   * Calcule une force d'évitement pour éviter les autres ennemis proches.
-   * @param enemies Liste de tous les ennemis dans la scène.
-   * @returns Vecteur de répulsion.
-   */
-  private calculateAvoidance(enemies: BasicEnemy[]): Phaser.Math.Vector2 {
-    if (enemies.length === 0) return new Phaser.Math.Vector2(0, 0);
-    const avoidance = new Phaser.Math.Vector2(0, 0);
-    const avoidanceRadius = 50; // en pixels
+  private createSensors() {
+    const avoidanceRadius = EnemyConfig.detectionRadius;
 
-    enemies.forEach((enemy) => {
-      if (enemy === this) return; // Ignorer soi-même
-      const distance = Phaser.Math.Distance.Between(
-        this.x,
-        this.y,
-        enemy.x,
-        enemy.y
+    // Positions des sensors autour de l'ennemi
+    const directions = [
+      new Phaser.Math.Vector2(1, 0).normalize(), // Droite
+      new Phaser.Math.Vector2(-1, 0).normalize(), // Gauche
+      new Phaser.Math.Vector2(0, 1).normalize(), // Bas
+      new Phaser.Math.Vector2(0, -1).normalize(), // Haut
+      new Phaser.Math.Vector2(1, 1).normalize(), // Bas-Droite
+      new Phaser.Math.Vector2(-1, 1).normalize(), // Bas-Gauche
+      new Phaser.Math.Vector2(1, -1).normalize(), // Haut-Droite
+      new Phaser.Math.Vector2(-1, -1).normalize(), // Haut-Gauche
+    ];
+
+    this.sensors = [];
+
+    directions.forEach((direction) => {
+      const sensor = this.scene.matter.add.circle(
+        this.x + EnemyConfig.sensorDetectionRadius,
+        this.y + EnemyConfig.sensorDetectionRadius,
+        avoidanceRadius,
+        {
+          isSensor: true,
+          onCollideCallback: (
+            event: Phaser.Types.Physics.Matter.MatterCollisionData
+          ) => {
+            const { bodyA, bodyB } = event;
+            const otherBody = bodyA === this.body ? bodyB : bodyA;
+
+            if (otherBody.gameObject) {
+              const otherEntity = otherBody.gameObject;
+
+              if (otherEntity instanceof BasicEnemy) {
+                console.log('Collision detected with an enemy');
+              } else if (otherEntity instanceof BasicEntity) {
+                console.log('Collision detected with a player');
+              } else if (
+                otherEntity instanceof Phaser.Physics.Matter.TileBody
+              ) {
+                // Calcul du centre de la tuile
+                const tileCenterX = otherEntity.body!.position.x;
+                const tileCenterY = otherEntity.body!.position.y;
+
+                console.log('Centre de la tuile:', tileCenterX, tileCenterY);
+
+                // Création d'un rectangle rouge sur la tuile de collision
+                const graphics = this.scene.add.graphics();
+                graphics.fillStyle(0xff0000, 0.5); // Rouge avec opacité 50%
+                graphics.fillRect(
+                  tileCenterX - MapConfig.tileSize / 2,
+                  tileCenterY - MapConfig.tileSize / 2,
+                  MapConfig.tileSize,
+                  MapConfig.tileSize
+                );
+
+                // Calcul de la direction opposée pour l'évitement
+                const oppositeDirection = new Phaser.Math.Vector2(
+                  this.x - tileCenterX,
+                  this.y - tileCenterY
+                );
+                console.log(
+                  'Collision detected with a tile',
+                  oppositeDirection.normalize()
+                );
+                this.avoidance.push(oppositeDirection.normalize());
+              }
+            }
+          },
+          onCollideEndCallback: () => {
+            this.avoidance = [];
+          },
+        }
       );
-      if (distance < avoidanceRadius && distance > 0) {
-        const repulsion = new Phaser.Math.Vector2(
-          this.x - enemy.x,
-          this.y - enemy.y
-        );
-        repulsion.normalize();
-        repulsion.scale((avoidanceRadius - distance) / avoidanceRadius); // Plus proche, plus fort
-        avoidance.add(repulsion);
-      }
+      this.sensors.push({ sensor, direction });
     });
+  }
 
-    return avoidance;
+  private calculateAvoidance() {
+    // Mettre à jour les sensors autour de l'ennemi
+    this.sensors.forEach(({ sensor, direction }) => {
+      sensor.position.x =
+        this.x + direction.x * EnemyConfig.sensorDetectionRadius;
+      sensor.position.y =
+        this.y + direction.y * EnemyConfig.sensorDetectionRadius;
+    });
   }
 
   private dropXP() {

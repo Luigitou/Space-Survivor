@@ -8,6 +8,8 @@ export const EnemyConfig = {
   mass: 1,
   showPath: true,
   nextStepTileAmount: 1,
+  detectionRadius: 8,
+  sensorDetectionRadius: 18,
 };
 
 export const CaCEnemyConfig = {
