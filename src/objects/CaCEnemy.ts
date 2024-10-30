@@ -1,15 +1,20 @@
 import { BasicEnemy } from '~/objects';
 import { CaCEnemyConfig } from '~/config';
-import { EasyStarManager } from '~/utils';
+import { VectorField } from '~/utils';
 
 export class CaCEnemy extends BasicEnemy {
   private canAttack: boolean = true;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y);
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    vectorField: VectorField
+  ) {
+    super(scene, x, y, vectorField);
   }
 
-  public update(easystarManager: EasyStarManager) {
+  public update(enemies: BasicEnemy[]) {
     if (
       Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.y) <
         CaCEnemyConfig.attackRange &&
@@ -17,7 +22,7 @@ export class CaCEnemy extends BasicEnemy {
     ) {
       this.performAttack();
     } else {
-      super.update(easystarManager);
+      super.update(enemies);
     }
   }
 

@@ -1,19 +1,24 @@
+// BasicEnemy.ts
+
 import { BasicEntity } from '~/objects/BasicEntity';
-import { EnemyConfig, MapConfig } from '~/config';
-import { EasyStarManager } from '~/utils';
+import { EnemyConfig } from '~/config';
+import { VectorField } from '~/utils';
 import { Xp } from './Xp';
 
 export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected target!: BasicEntity;
   protected xpValue!: string;
-  private pathGraphics!: Phaser.GameObjects.Graphics;
   private health: number = EnemyConfig.baseHealth;
   private directionGraphics!: Phaser.GameObjects.Graphics;
-  private path: { x: number; y: number }[] | null = null; // Chemin initialisé à null
-  private lastPathfindingTime: number = 0;
-  private pathfindingCooldown: number = 500; // Temps en ms entre les recalculs de chemin
+  private previousDirection: Phaser.Math.Vector2 | null = null;
+  private vectorField: VectorField;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    vectorField: VectorField // Passer le vectorField en paramètre
+  ) {
     super(scene.matter.world, x, y, 'enemy');
 
     scene.add.existing(this);
@@ -26,58 +31,45 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     this.setBounce(EnemyConfig.bounce);
     this.setMass(EnemyConfig.mass);
 
-    // Create graphics for path and direction visualization
-    if (EnemyConfig.showPath) {
-      this.pathGraphics = scene.add.graphics({
-        lineStyle: { width: 2, color: 0x00ff00 },
-        fillStyle: { color: 0xff0000 },
-      });
-    }
+    // Create graphics for direction visualization
     this.directionGraphics = scene.add.graphics({
-      lineStyle: { width: 2, color: 0xff0000 }, // Red color for direction vector
+      lineStyle: { width: 2, color: 0xff0000 },
     });
+
+    this.vectorField = vectorField;
   }
 
   public setTarget(target: BasicEntity) {
     this.target = target;
   }
 
-  public update(easystarManager: EasyStarManager) {
+  public update(enemies: BasicEnemy[]) {
     if (this.target) {
-      const now = this.scene.time.now;
-
-      // Recalculate path if necessary
-      if (
-        !this.path ||
-        this.path.length === 0 ||
-        now - this.lastPathfindingTime > this.pathfindingCooldown
-      ) {
-        this.nextTile(easystarManager);
-        this.lastPathfindingTime = now;
-        return; // Wait for path to be calculated
-      }
-
-      if (!this.path || this.path.length === 0) {
-        // Wait for path to be calculated
+      // Calculer la direction à partir du champ vectoriel
+      const direction = this.calculateDirection();
+      if (!direction || direction.length() === 0) {
+        // Si aucune direction disponible, arrêter le mouvement
+        this.setVelocity(0, 0);
         return;
       }
 
-      // Calculate direction
-      const direction = this.calculateDirection();
-      if (!direction) return;
-      this.moveInDirection(direction);
+      // Calculer la force d'évitement
+      const avoidance = this.calculateAvoidance(enemies);
+
+      // Combiner la direction du champ vectoriel avec la force d'évitement
+      const combinedDirection = direction.clone().add(avoidance).normalize();
+
+      this.moveInDirection(combinedDirection);
     } else {
-      this.setVelocity(1, 0);
+      this.setVelocity(0, 0);
     }
   }
 
   public destroy(fromScene?: boolean) {
-    EnemyConfig.showPath && this.pathGraphics.destroy();
     this.directionGraphics.destroy();
     super.destroy(fromScene);
   }
 
-  // Method to put damages on the enemy and kill it if health is 0
   public takeDamage(damage: number) {
     this.health -= damage;
     console.log(this.health);
@@ -90,81 +82,21 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     }
   }
 
-  protected nextTile(easystarManager: EasyStarManager) {
-    // Invalidate current path
-    this.path = null;
+  protected calculateDirection(): Phaser.Math.Vector2 | null {
+    // Obtenir le vecteur à la position actuelle
+    const direction = this.vectorField.getVectorAt(this.x, this.y);
 
-    const startX = Math.floor(this.body!.position.x / MapConfig.tileSize);
-    const startY = Math.floor(this.body!.position.y / MapConfig.tileSize);
-    const endX = Math.floor(this.target.body!.position.x / MapConfig.tileSize);
-    const endY = Math.floor(this.target.body!.position.y / MapConfig.tileSize);
-
-    easystarManager.findPath(startX, startY, endX, endY, (path) => {
-      if (path && path.length > 1) {
-        this.path = path;
-        EnemyConfig.showPath && this.visualizePath();
-      } else {
-        // No path found or no path
-        this.clearPathVisualization();
-        this.path = [];
-      }
-    });
-  }
-
-  protected calculateDirection() {
-    // Ensure we have a path
-    if (!this.path || this.path.length === 0) return null;
-
-    // Decide which step to use
-    let nextStepIndex = EnemyConfig.nextStepTileAmount;
-    if (nextStepIndex >= this.path.length) {
-      nextStepIndex = this.path.length - 1;
+    if (direction.length() === 0) {
+      return null;
     }
 
-    const nextStepTile = this.path[nextStepIndex];
-    if (!nextStepTile) return null;
-
-    // Convert tile coordinates to world coordinates without modifying the path
-    const nextStepX =
-      nextStepTile.x * MapConfig.tileSize + MapConfig.tileSize / 2;
-    const nextStepY =
-      nextStepTile.y * MapConfig.tileSize + MapConfig.tileSize / 2;
-
-    // Calculate distance to next step
-    const distanceToNextStep = Phaser.Math.Distance.Between(
-      this.x,
-      this.y,
-      nextStepX,
-      nextStepY
-    );
-
-    // If we're close enough to the next step, remove it from the path
-    const closeEnoughDistance = 5; // pixels
-    if (distanceToNextStep < closeEnoughDistance) {
-      // Remove passed steps
-      this.path.splice(0, nextStepIndex + 1);
-
-      // If we have no more path, return null
-      if (this.path.length === 0) return null;
-
-      // Recalculate direction
-      return this.calculateDirection();
-    }
-
-    // Calculate vector to next step
-    const vectorToTarget = new Phaser.Math.Vector2(
-      nextStepX - this.x,
-      nextStepY - this.y
-    ).normalize();
-
-    // Debugging logs
-    console.log('Vector to Target:', vectorToTarget);
-
-    return vectorToTarget;
+    return direction.normalize();
   }
 
   protected moveInDirection(direction: Phaser.Math.Vector2) {
     const speed = EnemyConfig.baseSpeed;
+
+    // Appliquer la vitesse
     this.setVelocity(direction.x * speed, direction.y * speed);
 
     // Clear previous direction graphics
@@ -174,72 +106,41 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
     this.directionGraphics.lineBetween(
       this.x,
       this.y,
-      this.x + direction.x * 50, // Multiply by 50 to lengthen the line
+      this.x + direction.x * 50,
       this.y + direction.y * 50
     );
   }
 
-  protected hasLineOfSight(): boolean {
-    const startPoint = { x: this.x, y: this.y };
-    const endPoint = { x: this.target.x, y: this.target.y };
+  /**
+   * Calcule une force d'évitement pour éviter les autres ennemis proches.
+   * @param enemies Liste de tous les ennemis dans la scène.
+   * @returns Vecteur de répulsion.
+   */
+  private calculateAvoidance(enemies: BasicEnemy[]): Phaser.Math.Vector2 {
+    if (enemies.length === 0) return new Phaser.Math.Vector2(0, 0);
+    const avoidance = new Phaser.Math.Vector2(0, 0);
+    const avoidanceRadius = 50; // en pixels
 
-    // @ts-ignore
-    const collisions = Phaser.Physics.Matter.Matter.Query.ray(
-      // @ts-ignore
-      this.scene.matter.world.localWorld.bodies,
-      startPoint,
-      endPoint
-    );
-
-    // Si aucune collision ou seulement la collision avec le joueur;
-    if (collisions.length === 0) {
-      return true;
-    }
-
-    // Filtre les collisions, en vérifiant qu'il n'y a pas de mur ou d'obstacle
-    for (const collision of collisions) {
-      const hitObject = collision.body;
-
-      // Vérifie si l'objet touché est un obstacle (ex. : mur)
-      if (
-        hitObject.gameObject &&
-        hitObject.gameObject instanceof Phaser.Physics.Matter.TileBody
-      ) {
-        return false;
-      }
-    }
-
-    // Aucun obstacle trouvé entre l'ennemi et le joueur
-    return true;
-  }
-
-  private getInterestMap() {}
-
-  private getDangerMap() {}
-
-  private visualizePath() {
-    this.pathGraphics.clear();
-
-    this.path!.forEach((point, index) => {
-      const posX = point.x * MapConfig.tileSize + MapConfig.tileSize / 2;
-      const posY = point.y * MapConfig.tileSize + MapConfig.tileSize / 2;
-
-      this.pathGraphics.fillCircle(posX, posY, 4);
-
-      if (index > 0) {
-        const prevPoint = this.path![index - 1];
-        this.pathGraphics.lineBetween(
-          prevPoint.x * MapConfig.tileSize + MapConfig.tileSize / 2,
-          prevPoint.y * MapConfig.tileSize + MapConfig.tileSize / 2,
-          posX,
-          posY
+    enemies.forEach((enemy) => {
+      if (enemy === this) return; // Ignorer soi-même
+      const distance = Phaser.Math.Distance.Between(
+        this.x,
+        this.y,
+        enemy.x,
+        enemy.y
+      );
+      if (distance < avoidanceRadius && distance > 0) {
+        const repulsion = new Phaser.Math.Vector2(
+          this.x - enemy.x,
+          this.y - enemy.y
         );
+        repulsion.normalize();
+        repulsion.scale((avoidanceRadius - distance) / avoidanceRadius); // Plus proche, plus fort
+        avoidance.add(repulsion);
       }
     });
-  }
 
-  private clearPathVisualization() {
-    this.pathGraphics.clear();
+    return avoidance;
   }
 
   private dropXP() {
