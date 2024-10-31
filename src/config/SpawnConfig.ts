@@ -1,35 +1,52 @@
+export type EnemyType = 'cac' | 'range';
+
+export interface WaveConfig {
+  cacCount: number;
+  rangeCount: number;
+  spawnDelay: number;
+  waveDuration?: number; // Durée max de la vague en ms (optionnel)
+  requireAllDefeated: boolean; // Si true, tous les ennemis doivent être vaincus
+}
+
 export const SpawnConfig = {
-  // Délai entre chaque vague de spawn (en ms)
-  spawnDelay: 5000,
+  // Délai initial entre chaque spawn d'ennemi dans une vague (en ms)
+  baseSpawnDelay: 1000,
 
-  // Nombre maximum d'ennemis simultanés
-  maxEnemies: 10,
-
-  // Configuration par type d'ennemi
-  types: {
-    basic: {
-      // Probabilité d'apparition (sur 100)
-      spawnChance: 70,
-      // Nombre maximum de ce type d'ennemi
-      maxCount: 10,
-      // Délai minimum entre deux spawns de ce type (en ms)
-      minSpawnDelay: 2000,
-      // Nombre d'ennemis par spawn point
-      spawnCount: 3,
+  // Configuration des vagues
+  waves: [
+    {
+      cacCount: 3,
+      rangeCount: 1,
+      spawnDelay: 1000,
+      waveDuration: 30000, // 30 secondes
+      requireAllDefeated: true,
     },
-    range: {
-      spawnChance: 100,
-      maxCount: 10,
-      minSpawnDelay: 3000,
-      spawnCount: 2,
+    {
+      cacCount: 4,
+      rangeCount: 2,
+      spawnDelay: 900,
+      waveDuration: 35000, // 35 secondes
+      requireAllDefeated: false,
     },
-  },
+    {
+      cacCount: 5,
+      rangeCount: 3,
+      spawnDelay: 800,
+      waveDuration: 40000, // 40 secondes
+      requireAllDefeated: true,
+    },
+    {
+      cacCount: 6,
+      rangeCount: 4,
+      spawnDelay: 700,
+      waveDuration: 45000, // 45 secondes
+      requireAllDefeated: false,
+    },
+  ] as WaveConfig[],
 
-  // Debug
   debug: {
-    // Afficher les zones de spawn
     showSpawnZones: true,
-    // Afficher le compte d'ennemis
     showEnemyCount: true,
+    showWaveInfo: true,
   },
 } as const;
