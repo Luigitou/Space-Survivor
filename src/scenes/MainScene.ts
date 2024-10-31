@@ -14,10 +14,10 @@ import { SpawnConfig } from '~/config';
 
 export class MainScene extends CustomScene {
   public crosshair!: Phaser.GameObjects.Sprite;
+  public easystarManager!: EasyStarManager;
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
   private enemies: Array<BasicEnemy> = [];
-  private easystarManager!: EasyStarManager;
   private leftMouseDown: boolean = false;
   private lastShotTime?: number;
   private timerText?: Phaser.GameObjects.Text;
@@ -196,7 +196,7 @@ export class MainScene extends CustomScene {
     if (!this.player.active) return;
     this.player.update();
     this.enemies = this.enemies.filter((enemy) => enemy.active);
-    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
+    this.enemies.forEach((enemy) => enemy.update());
     if (this.leftMouseDown) {
       if (
         !this.lastShotTime ||

@@ -1,5 +1,4 @@
 import { BasicEnemy, Projectile } from '~/objects';
-import { EasyStarManager } from '~/utils';
 import { RangeEnemyConfig } from '~/config';
 
 export class RangeEnemy extends BasicEnemy {
@@ -9,13 +8,13 @@ export class RangeEnemy extends BasicEnemy {
     super(scene, x, y);
   }
 
-  public update(easystarManager: EasyStarManager) {
+  public update() {
     if (this.checkAttack() && this.hasLineOfSight() && this.canShoot) {
       this.fireProjectile();
     } else if (this.checkIfRangeAttack()) {
       this.setVelocity(0, 0);
     } else {
-      super.update(easystarManager);
+      super.update();
     }
   }
 

@@ -7,6 +7,7 @@ export const EnemyConfig = {
   bounce: 1,
   mass: 1,
   showPath: true,
+  pathDelay: 500,
 };
 
 export const CaCEnemyConfig = {
