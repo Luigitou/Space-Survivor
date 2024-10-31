@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BasicEntity, CaCEnemy, BasicEnemy, RangeEnemy } from '~/objects';
+import { BasicEnemy, BasicEntity, Weapon } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
 import { EnemySpawnPoint } from '~/objects/EnemySpawnPoint';
@@ -7,6 +7,7 @@ import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
 import { SpawnConfig } from '~/config';
 
 export class MainScene extends CustomScene {
+  public crosshair!: Phaser.GameObjects.Sprite;
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
   private enemies: Array<BasicEnemy> = [];
@@ -27,6 +28,8 @@ export class MainScene extends CustomScene {
   private isWaveInProgress: boolean = false;
   private waveStartTime: number = 0;
   private waveTimer?: Phaser.Time.TimerEvent;
+  private weapon!: Weapon;
+  private ammoText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({
@@ -45,10 +48,19 @@ export class MainScene extends CustomScene {
     this.load.image('xp1', 'assets/sprites/xp-sprites/xp1.png');
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
+    this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
   }
 
   create() {
     super.create();
+
+    // Création du crosshair
+    this.crosshair = this.add.sprite(50, 50, 'crosshair');
+    this.crosshair.setDepth(1000);
+    this.crosshair.setScale(0.5);
+    console.log(this.crosshair);
+    this.input.setDefaultCursor('none');
+
     // ----- Creation de la map
     const map = this.make.tilemap({ key: 'map' });
     const tileset = map.addTilesetImage('Spaceship', 'tiles');
@@ -70,19 +82,45 @@ export class MainScene extends CustomScene {
 
     // ----- Création du HUD
     this.hudContainer = this.add.container(0, 0);
-    this.timerText = this.add.text(16, 16, 'Time: 0', {
-      fontSize: '32px',
-      color: '#FFF',
-      fontFamily: 'Arial',
-      fontStyle: 'bold',
-    });
+    this.timerText = this.add.text(
+      this.crosshair.x,
+      this.crosshair.y,
+      'Time: 0',
+      {
+        fontSize: '32px',
+        color: '#FFF',
+        fontFamily: 'Arial',
+        fontStyle: 'bold',
+      }
+    );
     this.hudContainer.add(this.timerText);
 
     // ----- Initialisation du chronomètre
     this.initialTime = 0;
 
+    // ----- Initialisation de l'arme du joueur
+    this.weapon = new Weapon(this, 'rifle', this.crosshair);
+
+    // ----- Ajout du texte d'ammo
+    this.ammoText = this.add.text(
+      16,
+      16,
+      `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`,
+      {
+        color: '#ffffff',
+        fontSize: '14px',
+        fontFamily: 'Arial',
+        fontStyle: 'bold',
+      }
+    );
+
     // ----- Création du joueur
-    this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
+    this.player = new BasicEntity(
+      this,
+      200,
+      map.heightInPixels - 200,
+      this.weapon
+    );
     this.player.initHUD(this);
 
     this.time.addEvent({
@@ -135,6 +173,47 @@ export class MainScene extends CustomScene {
       this.enemyCountText.setScrollFactor(0);
       this.updateEnemyCountText();
     }
+  }
+
+  updateTimer() {
+    this.initialTime += 1;
+    this.timerText?.setText('Time: ' + this.initialTime);
+  }
+
+  update() {
+    // Mise à jour de la position du HUD
+    this.hudContainer?.setPosition(
+      this.cameras.main.scrollX,
+      this.cameras.main.scrollY
+    );
+    // Mise à jour des entités
+    if (!this.player.active) return;
+    this.player.update();
+    this.enemies = this.enemies.filter((enemy) => enemy.active);
+    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
+    if (this.leftMouseDown) {
+      if (
+        !this.lastShotTime ||
+        this.time.now - this.lastShotTime > this.weapon.getFireRate()
+      ) {
+        this.player.shoot();
+        this.lastShotTime = this.time.now;
+      }
+    }
+
+    this.crosshair.x = this.input.activePointer.worldX;
+    this.crosshair.y = this.input.activePointer.worldY;
+    this.ammoText.x = this.crosshair.x + 20;
+    this.ammoText.y = this.crosshair.y - this.ammoText.height;
+    this.ammoText.setText(
+      `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`
+    );
+  }
+
+  destroy() {
+    this.spawnTimer?.destroy();
+    this.enemyCountText?.destroy();
+    this.spawnPoints.forEach((point) => point.destroy());
   }
 
   private createSpawnPoints(map: Phaser.Tilemaps.Tilemap) {
@@ -319,35 +398,5 @@ export class MainScene extends CustomScene {
         `Ennemis actifs: Total=${this.enemies.length} (CAC=${activeEnemies.cac}, RANGE=${activeEnemies.range})`
       );
     }
-  }
-
-  updateTimer() {
-    this.initialTime += 1;
-    this.timerText?.setText('Time: ' + this.initialTime);
-  }
-
-  update() {
-    // Mise à jour de la position du HUD
-    this.hudContainer?.setPosition(
-      this.cameras.main.scrollX,
-      this.cameras.main.scrollY
-    );
-    // Mise à jour des entités
-    if (!this.player.active) return;
-    this.player.update();
-    this.enemies = this.enemies.filter((enemy) => enemy.active);
-    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
-    if (this.leftMouseDown) {
-      if (!this.lastShotTime || this.time.now - this.lastShotTime > 500) {
-        this.player.shoot();
-        this.lastShotTime = this.time.now;
-      }
-    }
-  }
-
-  destroy() {
-    this.spawnTimer?.destroy();
-    this.enemyCountText?.destroy();
-    this.spawnPoints.forEach((point) => point.destroy());
   }
 }

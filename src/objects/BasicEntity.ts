@@ -1,18 +1,21 @@
 import { CustomScene } from '~/scenes/CustomScene';
 import { PlayerConfig } from '~/config';
-import { PlayerProjectile } from './PlayerProjectiles';
+import { Weapon } from '~/objects/Weapon';
 
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
+  public xp: number = 0;
+  protected target: { x: number; y: number } = { x: 0, y: 0 };
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private health: number = PlayerConfig.baseHealth;
-  protected target: { x: number; y: number } = { x: 0, y: 0 };
-  public xp: number = 0;
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
+  private weapon: Weapon;
+  private keys: any;
 
-  constructor(scene: CustomScene, x: number, y: number) {
+  constructor(scene: CustomScene, x: number, y: number, weapon: Weapon) {
     super(scene.matter.world, x, y, 'basic-entity');
     this.setActive(true);
+    this.weapon = weapon;
 
     scene.add.existing(this);
 
@@ -24,6 +27,7 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     this.setMass(PlayerConfig.mass);
 
     this.cursors = scene.input.keyboard?.createCursorKeys();
+    this.keys = scene.input.keyboard?.addKeys('Z,Q,S,D,R');
   }
 
   initHUD(scene: CustomScene) {
@@ -46,16 +50,20 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       y: 0,
     };
 
-    if (this.cursors?.left?.isDown) {
+    if (this.cursors?.left?.isDown || this.keys?.Q?.isDown) {
       velocity.x = -speed;
-    } else if (this.cursors?.right?.isDown) {
+    } else if (this.cursors?.right?.isDown || this.keys?.D?.isDown) {
       velocity.x = speed;
     }
 
-    if (this.cursors?.up?.isDown) {
+    if (this.cursors?.up?.isDown || this.keys?.Z?.isDown) {
       velocity.y = -speed;
-    } else if (this.cursors?.down?.isDown) {
+    } else if (this.cursors?.down?.isDown || this.keys?.S?.isDown) {
       velocity.y = speed;
+    }
+
+    if (this.keys?.R?.isDown) {
+      this.weapon.reload();
     }
 
     this.setVelocity(velocity.x, velocity.y);
@@ -75,12 +83,11 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
 
   // Shoot a projectile
   public shoot() {
-    new PlayerProjectile(this.scene, this.x, this.y);
+    this.weapon.shoot(this);
   }
 
   // Add xp to the player
   public addXp(amount: number): void {
-    console.log('Player gained', amount, 'xp');
     this.xp += amount;
     if (this.xp >= PlayerConfig.xpBarMaxValue) {
       this.levelUp();
@@ -93,7 +100,6 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   // des selections de compétences / d'items
   public levelUp() {
     this.level++;
-    console.log('Player leveled up to', this.level);
     this.levelText.setText('Level: ' + this.level);
   }
 }

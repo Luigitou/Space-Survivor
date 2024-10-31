@@ -3,9 +3,13 @@ import { PlaceyerShootConfig } from '~/config/player.config';
 import { BasicEnemy } from '~/objects/BasicEnemy';
 
 export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  private readonly damage: number;
+
+  constructor(scene: Phaser.Scene, x: number, y: number, damage: number) {
     super(scene.matter.world, x, y, 'playerLaser');
     scene.sound.play('laserSound');
+
+    this.damage = damage;
 
     scene.add.existing(this);
     this.setDisplaySize(
@@ -43,7 +47,7 @@ export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
 
         if (targetObject instanceof BasicEnemy) {
           if (!targetObject.scene) return;
-          targetObject.takeDamage(1);
+          targetObject.takeDamage(this.damage);
           this.destroy();
         } else if (targetObject instanceof Phaser.Physics.Matter.TileBody) {
           this.destroy();
