@@ -11,6 +11,8 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private levelText!: Phaser.GameObjects.Text;
   private weapon: Weapon;
   private keys: any;
+  private isDodging: boolean = false;
+  private lastDodgeTime: number = 0;
 
   constructor(scene: CustomScene, x: number, y: number, weapon: Weapon) {
     super(scene.matter.world, x, y, 'basic-entity');
@@ -43,7 +45,9 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   }
 
   update() {
-    const speed = PlayerConfig.baseSpeed;
+    const speed = this.isDodging
+      ? PlayerConfig.baseSpeed * 2
+      : PlayerConfig.baseSpeed;
 
     let velocity = {
       x: 0,
@@ -66,11 +70,19 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       this.weapon.reload();
     }
 
+    if (this.cursors?.space?.isDown && this.canDodge()) {
+      this.startDodge();
+    }
+
     this.setVelocity(velocity.x, velocity.y);
   }
 
   // Take damage from an enemy
   public takeDamage(damage: number) {
+    if (this.isDodging) {
+      console.log('Player is dodging');
+      return;
+    }
     this.health -= damage;
     console.log(this.health);
 
@@ -95,11 +107,28 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     }
   }
 
-  // Level up the player
-  // voir pour ajouter des stats supplémentaires ou
   // des selections de compétences / d'items
   public levelUp() {
     this.level++;
     this.levelText.setText('Level: ' + this.level);
+  }
+
+  // Level up the player
+  // voir pour ajouter des stats supplémentaires ou
+
+  private canDodge(): boolean {
+    if (this.isDodging) return false;
+    return (
+      this.scene.time.now - this.lastDodgeTime >= PlayerConfig.dodgeCooldown
+    );
+  }
+
+  private startDodge() {
+    this.isDodging = true;
+    this.lastDodgeTime = this.scene.time.now;
+
+    this.scene.time.delayedCall(PlayerConfig.dodgeDuration, () => {
+      this.isDodging = false;
+    });
   }
 }
