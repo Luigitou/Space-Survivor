@@ -19,6 +19,7 @@ export class MainScene extends CustomScene {
   private spawnTimer?: Phaser.Time.TimerEvent;
   private enemyCountText?: Phaser.GameObjects.Text;
   private weapon!: Weapon;
+  private crosshair!: Phaser.GameObjects.Sprite;
 
   constructor() {
     super({
@@ -37,10 +38,26 @@ export class MainScene extends CustomScene {
     this.load.image('xp1', 'assets/sprites/xp-sprites/xp1.png');
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
+    this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
+
+    // Ajouter un écouteur pour vérifier que le fichier a bien été chargé
+    this.load.on('filecomplete', (key) => {
+      if (key === 'crosshair') {
+        console.log('La tilesheet crosshair est chargée avec succès.');
+      }
+    });
   }
 
   create() {
     super.create();
+
+    // Création du crosshair
+    this.crosshair = this.add.sprite(50, 50, 'crosshair', 11);
+    this.crosshair.setDepth(1000);
+    this.crosshair.setScale(0.5);
+    console.log(this.crosshair);
+    this.input.setDefaultCursor('none');
+
     // ----- Creation de la map
     const map = this.make.tilemap({ key: 'map' });
     const tileset = map.addTilesetImage('Spaceship', 'tiles');
@@ -166,6 +183,9 @@ export class MainScene extends CustomScene {
         this.lastShotTime = this.time.now;
       }
     }
+
+    this.crosshair.x = this.input.activePointer.worldX;
+    this.crosshair.y = this.input.activePointer.worldY;
   }
 
   destroy() {
