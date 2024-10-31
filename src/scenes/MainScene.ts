@@ -25,6 +25,8 @@ export class MainScene extends CustomScene {
   };
   private waveText?: Phaser.GameObjects.Text;
   private isWaveInProgress: boolean = false;
+  private waveStartTime: number = 0;
+  private waveTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super({
@@ -162,8 +164,9 @@ export class MainScene extends CustomScene {
       range: wave.rangeCount,
     };
     this.isWaveInProgress = true;
+    this.waveStartTime = this.time.now;
 
-    // Configurer le timer de spawn pour cette vague
+    // Configurer le timer de spawn
     this.spawnTimer?.destroy();
     this.spawnTimer = this.time.addEvent({
       delay: wave.spawnDelay,
@@ -172,10 +175,25 @@ export class MainScene extends CustomScene {
       loop: true,
     });
 
+    // Configurer le timer de la vague UNIQUEMENT si requireAllDefeated est false
+    this.waveTimer?.destroy();
+    if (wave.waveDuration && !wave.requireAllDefeated) {
+      this.waveTimer = this.time.addEvent({
+        delay: wave.waveDuration,
+        callback: () => this.checkWaveCompletion(true),
+        callbackScope: this,
+      });
+    }
+
     this.updateWaveText();
   }
 
   private spawnEnemies() {
+    if (this.currentWave >= SpawnConfig.waves.length) {
+      this.spawnTimer?.destroy();
+      return;
+    }
+
     if (!this.isWaveInProgress) return;
 
     const wave = SpawnConfig.waves[this.currentWave];
@@ -204,37 +222,67 @@ export class MainScene extends CustomScene {
   private setupEnemy(enemy: CaCEnemy | RangeEnemy) {
     enemy.setTarget(this.player);
     this.enemies.push(enemy);
+    this.updateEnemyCountText();
 
     enemy.once('destroy', () => {
       this.enemies = this.enemies.filter((e) => e !== enemy);
       this.updateEnemyCountText();
+      this.checkWaveCompletion();
     });
   }
 
-  private checkWaveCompletion() {
+  private checkWaveCompletion(forceNextWave: boolean = false) {
+    if (this.currentWave >= SpawnConfig.waves.length) {
+      this.isWaveInProgress = false;
+      return;
+    }
+
+    const wave = SpawnConfig.waves[this.currentWave];
     const allEnemiesSpawned =
       this.remainingEnemies.cac === 0 && this.remainingEnemies.range === 0;
 
     const allEnemiesDefeated = this.enemies.length === 0;
+    const timeExpired = wave.waveDuration
+      ? this.time.now - this.waveStartTime >= wave.waveDuration
+      : false;
 
-    if (allEnemiesSpawned && allEnemiesDefeated) {
-      this.isWaveInProgress = false;
-      this.currentWave++;
-      this.startNextWave();
+    // Si requireAllDefeated est true, on doit attendre que tous les ennemis soient vaincus
+    if (wave.requireAllDefeated) {
+      if (allEnemiesSpawned && allEnemiesDefeated) {
+        this.isWaveInProgress = false;
+        this.currentWave++;
+        this.startNextWave();
+      }
+    } else {
+      // Sinon, on peut passer à la vague suivante si le temps est écoulé
+      if (allEnemiesSpawned && (forceNextWave || timeExpired)) {
+        this.isWaveInProgress = false;
+        this.currentWave++;
+        this.startNextWave();
+      }
     }
   }
 
   private updateWaveText() {
     if (this.waveText) {
-      const totalEnemies = {
-        cac: SpawnConfig.waves[this.currentWave].cacCount,
-        range: SpawnConfig.waves[this.currentWave].rangeCount,
-      };
+      if (this.currentWave >= SpawnConfig.waves.length) {
+        this.waveText.setText('Toutes les vagues sont terminées !');
+        return;
+      }
 
-      const remainingToSpawn = {
-        cac: this.remainingEnemies.cac,
-        range: this.remainingEnemies.range,
-      };
+      const wave = SpawnConfig.waves[this.currentWave];
+
+      // On calcule le temps restant uniquement si requireAllDefeated est false
+      const timeRemaining =
+        !wave.requireAllDefeated && wave.waveDuration
+          ? Math.max(
+              0,
+              Math.ceil(
+                (wave.waveDuration - (this.time.now - this.waveStartTime)) /
+                  1000
+              )
+            )
+          : null;
 
       const activeEnemies = this.enemies.reduce(
         (count, enemy) => {
@@ -247,15 +295,29 @@ export class MainScene extends CustomScene {
 
       this.waveText.setText(
         `Vague: ${this.currentWave + 1}\n` +
-          `CAC: ${activeEnemies.cac}/${totalEnemies.cac} (À spawner: ${remainingToSpawn.cac})\n` +
-          `RANGE: ${activeEnemies.range}/${totalEnemies.range} (À spawner: ${remainingToSpawn.range})`
+          `CAC: ${activeEnemies.cac}/${wave.cacCount} (À spawner: ${this.remainingEnemies.cac})\n` +
+          `RANGE: ${activeEnemies.range}/${wave.rangeCount} (À spawner: ${this.remainingEnemies.range})\n` +
+          // On n'affiche le temps restant que si timeRemaining n'est pas null
+          (timeRemaining !== null ? `Temps restant: ${timeRemaining}s\n` : '') +
+          `${wave.requireAllDefeated ? '(Tous les ennemis doivent être vaincus)' : '(Passage automatique possible)'}`
       );
     }
   }
 
   private updateEnemyCountText() {
     if (this.enemyCountText) {
-      this.enemyCountText.setText(`Ennemis actifs: ${this.enemies.length}`);
+      const activeEnemies = this.enemies.reduce(
+        (count, enemy) => {
+          if (enemy instanceof CaCEnemy) count.cac++;
+          if (enemy instanceof RangeEnemy) count.range++;
+          return count;
+        },
+        { cac: 0, range: 0 }
+      );
+
+      this.enemyCountText.setText(
+        `Ennemis actifs: Total=${this.enemies.length} (CAC=${activeEnemies.cac}, RANGE=${activeEnemies.range})`
+      );
     }
   }
 
