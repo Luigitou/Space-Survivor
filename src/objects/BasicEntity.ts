@@ -1,18 +1,20 @@
 import { CustomScene } from '~/scenes/CustomScene';
 import { PlayerConfig } from '~/config';
-import { PlayerProjectile } from './PlayerProjectiles';
+import { Weapon } from '~/objects/Weapon';
 
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
+  public xp: number = 0;
+  protected target: { x: number; y: number } = { x: 0, y: 0 };
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private health: number = PlayerConfig.baseHealth;
-  protected target: { x: number; y: number } = { x: 0, y: 0 };
-  public xp: number = 0;
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
+  private weapon: Weapon;
 
-  constructor(scene: CustomScene, x: number, y: number) {
+  constructor(scene: CustomScene, x: number, y: number, weapon: Weapon) {
     super(scene.matter.world, x, y, 'basic-entity');
     this.setActive(true);
+    this.weapon = weapon;
 
     scene.add.existing(this);
 
@@ -75,12 +77,11 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
 
   // Shoot a projectile
   public shoot() {
-    new PlayerProjectile(this.scene, this.x, this.y);
+    this.weapon.shoot(this);
   }
 
   // Add xp to the player
   public addXp(amount: number): void {
-    console.log('Player gained', amount, 'xp');
     this.xp += amount;
     if (this.xp >= PlayerConfig.xpBarMaxValue) {
       this.levelUp();
@@ -93,7 +94,6 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   // des selections de compétences / d'items
   public levelUp() {
     this.level++;
-    console.log('Player leveled up to', this.level);
     this.levelText.setText('Level: ' + this.level);
   }
 }

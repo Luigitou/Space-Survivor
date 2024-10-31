@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BasicEntity, CaCEnemy, BasicEnemy, RangeEnemy } from '~/objects';
+import { BasicEnemy, BasicEntity, Weapon } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
 import { EnemySpawnPoint, EnemyType } from '~/objects/EnemySpawnPoint';
@@ -18,6 +18,7 @@ export class MainScene extends CustomScene {
   private spawnPoints: EnemySpawnPoint[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
   private enemyCountText?: Phaser.GameObjects.Text;
+  private weapon!: Weapon;
 
   constructor() {
     super({
@@ -72,8 +73,16 @@ export class MainScene extends CustomScene {
     // ----- Initialisation du chronomètre
     this.initialTime = 0;
 
+    // ----- Initialisation de l'arme du joueur
+    this.weapon = new Weapon(this, 'rifle');
+
     // ----- Création du joueur
-    this.player = new BasicEntity(this, 200, map.heightInPixels - 200);
+    this.player = new BasicEntity(
+      this,
+      200,
+      map.heightInPixels - 200,
+      this.weapon
+    );
     this.player.initHUD(this);
 
     this.time.addEvent({
@@ -132,6 +141,39 @@ export class MainScene extends CustomScene {
     }
   }
 
+  updateTimer() {
+    this.initialTime += 1;
+    this.timerText?.setText('Time: ' + this.initialTime);
+  }
+
+  update() {
+    // Mise à jour de la position du HUD
+    this.hudContainer?.setPosition(
+      this.cameras.main.scrollX,
+      this.cameras.main.scrollY
+    );
+    // Mise à jour des entités
+    if (!this.player.active) return;
+    this.player.update();
+    this.enemies = this.enemies.filter((enemy) => enemy.active);
+    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
+    if (this.leftMouseDown) {
+      if (
+        !this.lastShotTime ||
+        this.time.now - this.lastShotTime > this.weapon.getFireRate()
+      ) {
+        this.player.shoot();
+        this.lastShotTime = this.time.now;
+      }
+    }
+  }
+
+  destroy() {
+    this.spawnTimer?.destroy();
+    this.enemyCountText?.destroy();
+    this.spawnPoints.forEach((point) => point.destroy());
+  }
+
   private createSpawnPoints(map: Phaser.Tilemaps.Tilemap) {
     const spawnLayer = map.getObjectLayer('SpawnPoints');
 
@@ -175,35 +217,5 @@ export class MainScene extends CustomScene {
         `Ennemis: ${this.enemies.length}/${SpawnConfig.maxEnemies}`
       );
     }
-  }
-
-  updateTimer() {
-    this.initialTime += 1;
-    this.timerText?.setText('Time: ' + this.initialTime);
-  }
-
-  update() {
-    // Mise à jour de la position du HUD
-    this.hudContainer?.setPosition(
-      this.cameras.main.scrollX,
-      this.cameras.main.scrollY
-    );
-    // Mise à jour des entités
-    if (!this.player.active) return;
-    this.player.update();
-    this.enemies = this.enemies.filter((enemy) => enemy.active);
-    this.enemies.forEach((enemy) => enemy.update(this.easystarManager));
-    if (this.leftMouseDown) {
-      if (!this.lastShotTime || this.time.now - this.lastShotTime > 500) {
-        this.player.shoot();
-        this.lastShotTime = this.time.now;
-      }
-    }
-  }
-
-  destroy() {
-    this.spawnTimer?.destroy();
-    this.enemyCountText?.destroy();
-    this.spawnPoints.forEach((point) => point.destroy());
   }
 }

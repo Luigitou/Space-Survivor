@@ -17,3 +17,28 @@ export const PlaceyerShootConfig = {
   attackRange: 300,
   attackRate: 1000,
 };
+
+export type WeaponConfigType = {
+  name: string;
+  damage: number;
+  rate: number;
+  ammo: number;
+  reloadTime: number;
+};
+
+export const WeaponConfig: Record<string, WeaponConfigType> = {
+  rifle: {
+    name: 'rifle',
+    damage: 2,
+    rate: 200,
+    ammo: 10,
+    reloadTime: 1000,
+  },
+  machineGun: {
+    name: 'machineGun',
+    damage: 1,
+    rate: 100,
+    ammo: 20,
+    reloadTime: 500,
+  },
+};
