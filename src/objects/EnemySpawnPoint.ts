@@ -1,23 +1,18 @@
 import { BasicEnemy } from './BasicEnemy';
 import { RangeEnemy } from './RangeEnemy';
 import { SpawnConfig } from '~/config';
-
-export type EnemyType = 'basic' | 'range';
+import { CaCEnemy } from './CaCEnemy';
 
 export class EnemySpawnPoint {
   private scene: Phaser.Scene;
   private x: number;
   private y: number;
-  private enemyType: EnemyType;
   private debugGraphics?: Phaser.GameObjects.Graphics;
-  private spawnedCount: number = 0;
-  private lastSpawnTime: number = 0;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, enemyType: EnemyType) {
+  constructor(scene: Phaser.Scene, x: number, y: number) {
     this.scene = scene;
     this.x = x;
     this.y = y;
-    this.enemyType = enemyType;
 
     if (SpawnConfig.debug?.showSpawnZones) {
       this.debugGraphics = scene.add.graphics({
@@ -27,54 +22,19 @@ export class EnemySpawnPoint {
     }
   }
 
-  spawnEnemies(): BasicEnemy[] {
-    const enemies: BasicEnemy[] = [];
-    const spawnCount = SpawnConfig.types[this.enemyType].spawnCount;
+  spawnEnemy(type: 'cac' | 'range'): CaCEnemy | RangeEnemy | null {
+    const enemy =
+      type === 'cac'
+        ? new CaCEnemy(this.scene, this.x, this.y)
+        : new RangeEnemy(this.scene, this.x, this.y);
 
-    for (let i = 0; i < spawnCount; i++) {
-      switch (this.enemyType) {
-        case 'basic':
-          enemies.push(new BasicEnemy(this.scene, this.x, this.y));
-          break;
-        case 'range':
-          enemies.push(new RangeEnemy(this.scene, this.x, this.y));
-          break;
-      }
-    }
-
-    return enemies;
-  }
-
-  spawnEnemy(): BasicEnemy {
-    switch (this.enemyType) {
-      case 'basic':
-        return new BasicEnemy(this.scene, this.x, this.y);
-      case 'range':
-        return new RangeEnemy(this.scene, this.x, this.y);
-      default:
-        return new BasicEnemy(this.scene, this.x, this.y);
-    }
-  }
-
-  onEnemyDeath(): void {
-    // A peut etre supprimer: gérer la logique après la mort d'un ennemi
-    if (this.spawnedCount > 0) {
-      this.spawnedCount--;
-    }
+    return enemy;
   }
 
   destroy(): void {
     if (this.debugGraphics) {
       this.debugGraphics.destroy();
     }
-  }
-
-  getSpawnedCount(): number {
-    return this.spawnedCount;
-  }
-
-  getEnemyType(): EnemyType {
-    return this.enemyType;
   }
 
   getPosition(): { x: number; y: number } {

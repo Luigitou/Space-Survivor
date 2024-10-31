@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BasicEntity, CaCEnemy, BasicEnemy, RangeEnemy } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
-import { EnemySpawnPoint, EnemyType } from '~/objects/EnemySpawnPoint';
+import { EnemySpawnPoint } from '~/objects/EnemySpawnPoint';
 import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
 import { SpawnConfig } from '~/config';
 
@@ -18,6 +18,13 @@ export class MainScene extends CustomScene {
   private spawnPoints: EnemySpawnPoint[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
   private enemyCountText?: Phaser.GameObjects.Text;
+  private currentWave: number = 0;
+  private remainingEnemies: { cac: number; range: number } = {
+    cac: 0,
+    range: 0,
+  };
+  private waveText?: Phaser.GameObjects.Text;
+  private isWaveInProgress: boolean = false;
 
   constructor() {
     super({
@@ -101,26 +108,22 @@ export class MainScene extends CustomScene {
     // ----- Création des points d'apparition
     this.createSpawnPoints(map);
 
-    // Création initiale des ennemis
-    this.spawnPoints.forEach((spawnPoint) => {
-      const enemies = spawnPoint.spawnEnemies();
-      enemies.forEach((enemy) => {
-        enemy.setTarget(this.player);
-        this.enemies.push(enemy);
+    // Ajout du texte pour la vague
+    if (SpawnConfig.debug.showWaveInfo) {
+      this.waveText = this.add.text(16, 48, '', {
+        color: '#ffffff',
+        backgroundColor: '#000000',
       });
-    });
+      this.waveText.setScrollFactor(0);
+      this.updateWaveText();
+    }
+
+    // Démarrer la première vague
+    this.startNextWave();
 
     // ----- Ajout de la camera
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
-
-    // Configurer le timer de spawn
-    this.spawnTimer = this.time.addEvent({
-      delay: SpawnConfig.spawnDelay,
-      callback: this.spawnEnemies,
-      callbackScope: this,
-      loop: true,
-    });
 
     if (SpawnConfig.debug.showEnemyCount) {
       this.enemyCountText = this.add.text(16, 16, '', {
@@ -140,40 +143,119 @@ export class MainScene extends CustomScene {
         const spawnPoint = EnemySpawnFactory.createSpawnPoint(
           this,
           spawnObject.x || 0,
-          spawnObject.y || 0,
-          (spawnObject.properties?.find((p) => p.name === 'enemyType')?.value ||
-            'basic') as EnemyType
+          spawnObject.y || 0
         );
         this.spawnPoints.push(spawnPoint);
       });
     }
   }
 
-  private spawnEnemies() {
-    if (this.enemies.length >= SpawnConfig.maxEnemies) return;
+  private startNextWave() {
+    if (this.currentWave >= SpawnConfig.waves.length) {
+      console.log('Toutes les vagues sont terminées !');
+      return;
+    }
 
-    this.spawnPoints.forEach((spawnPoint) => {
-      const enemy = spawnPoint.spawnEnemy();
-      if (enemy) {
-        enemy.setTarget(this.player);
-        this.enemies.push(enemy);
+    const wave = SpawnConfig.waves[this.currentWave];
+    this.remainingEnemies = {
+      cac: wave.cacCount,
+      range: wave.rangeCount,
+    };
+    this.isWaveInProgress = true;
 
-        enemy.once('destroy', () => {
-          this.enemies = this.enemies.filter((e) => e !== enemy);
-          spawnPoint.onEnemyDeath();
-          this.updateEnemyCountText();
-        });
-      }
+    // Configurer le timer de spawn pour cette vague
+    this.spawnTimer?.destroy();
+    this.spawnTimer = this.time.addEvent({
+      delay: wave.spawnDelay,
+      callback: this.spawnEnemies,
+      callbackScope: this,
+      loop: true,
     });
 
-    this.updateEnemyCountText();
+    this.updateWaveText();
+  }
+
+  private spawnEnemies() {
+    if (!this.isWaveInProgress) return;
+
+    const wave = SpawnConfig.waves[this.currentWave];
+
+    // Choisir un point de spawn aléatoire
+    const spawnPoint = Phaser.Utils.Array.GetRandom(this.spawnPoints);
+
+    if (this.remainingEnemies.cac > 0) {
+      const enemy = spawnPoint.spawnEnemy('cac');
+      if (enemy) {
+        this.setupEnemy(enemy);
+        this.remainingEnemies.cac--;
+      }
+    } else if (this.remainingEnemies.range > 0) {
+      const enemy = spawnPoint.spawnEnemy('range');
+      if (enemy) {
+        this.setupEnemy(enemy);
+        this.remainingEnemies.range--;
+      }
+    }
+
+    this.checkWaveCompletion();
+    this.updateWaveText();
+  }
+
+  private setupEnemy(enemy: CaCEnemy | RangeEnemy) {
+    enemy.setTarget(this.player);
+    this.enemies.push(enemy);
+
+    enemy.once('destroy', () => {
+      this.enemies = this.enemies.filter((e) => e !== enemy);
+      this.updateEnemyCountText();
+    });
+  }
+
+  private checkWaveCompletion() {
+    const allEnemiesSpawned =
+      this.remainingEnemies.cac === 0 && this.remainingEnemies.range === 0;
+
+    const allEnemiesDefeated = this.enemies.length === 0;
+
+    if (allEnemiesSpawned && allEnemiesDefeated) {
+      this.isWaveInProgress = false;
+      this.currentWave++;
+      this.startNextWave();
+    }
+  }
+
+  private updateWaveText() {
+    if (this.waveText) {
+      const totalEnemies = {
+        cac: SpawnConfig.waves[this.currentWave].cacCount,
+        range: SpawnConfig.waves[this.currentWave].rangeCount,
+      };
+
+      const remainingToSpawn = {
+        cac: this.remainingEnemies.cac,
+        range: this.remainingEnemies.range,
+      };
+
+      const activeEnemies = this.enemies.reduce(
+        (count, enemy) => {
+          if (enemy instanceof CaCEnemy) count.cac++;
+          if (enemy instanceof RangeEnemy) count.range++;
+          return count;
+        },
+        { cac: 0, range: 0 }
+      );
+
+      this.waveText.setText(
+        `Vague: ${this.currentWave + 1}\n` +
+          `CAC: ${activeEnemies.cac}/${totalEnemies.cac} (À spawner: ${remainingToSpawn.cac})\n` +
+          `RANGE: ${activeEnemies.range}/${totalEnemies.range} (À spawner: ${remainingToSpawn.range})`
+      );
+    }
   }
 
   private updateEnemyCountText() {
     if (this.enemyCountText) {
-      this.enemyCountText.setText(
-        `Ennemis: ${this.enemies.length}/${SpawnConfig.maxEnemies}`
-      );
+      this.enemyCountText.setText(`Ennemis actifs: ${this.enemies.length}`);
     }
   }
 
