@@ -20,6 +20,7 @@ export class MainScene extends CustomScene {
   private enemyCountText?: Phaser.GameObjects.Text;
   private weapon!: Weapon;
   private crosshair!: Phaser.GameObjects.Sprite;
+  private ammoText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({
@@ -39,20 +40,13 @@ export class MainScene extends CustomScene {
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
     this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
-
-    // Ajouter un écouteur pour vérifier que le fichier a bien été chargé
-    this.load.on('filecomplete', (key) => {
-      if (key === 'crosshair') {
-        console.log('La tilesheet crosshair est chargée avec succès.');
-      }
-    });
   }
 
   create() {
     super.create();
 
     // Création du crosshair
-    this.crosshair = this.add.sprite(50, 50, 'crosshair', 11);
+    this.crosshair = this.add.sprite(50, 50, 'crosshair');
     this.crosshair.setDepth(1000);
     this.crosshair.setScale(0.5);
     console.log(this.crosshair);
@@ -79,12 +73,17 @@ export class MainScene extends CustomScene {
 
     // ----- Création du HUD
     this.hudContainer = this.add.container(0, 0);
-    this.timerText = this.add.text(16, 16, 'Time: 0', {
-      fontSize: '32px',
-      color: '#FFF',
-      fontFamily: 'Arial',
-      fontStyle: 'bold',
-    });
+    this.timerText = this.add.text(
+      this.crosshair.x,
+      this.crosshair.y,
+      'Time: 0',
+      {
+        fontSize: '32px',
+        color: '#FFF',
+        fontFamily: 'Arial',
+        fontStyle: 'bold',
+      }
+    );
     this.hudContainer.add(this.timerText);
 
     // ----- Initialisation du chronomètre
@@ -92,6 +91,19 @@ export class MainScene extends CustomScene {
 
     // ----- Initialisation de l'arme du joueur
     this.weapon = new Weapon(this, 'rifle');
+
+    // ----- Ajout du texte d'ammo
+    this.ammoText = this.add.text(
+      16,
+      16,
+      `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`,
+      {
+        color: '#ffffff',
+        fontSize: '14px',
+        fontFamily: 'Arial',
+        fontStyle: 'bold',
+      }
+    );
 
     // ----- Création du joueur
     this.player = new BasicEntity(
@@ -186,6 +198,11 @@ export class MainScene extends CustomScene {
 
     this.crosshair.x = this.input.activePointer.worldX;
     this.crosshair.y = this.input.activePointer.worldY;
+    this.ammoText.x = this.crosshair.x + 20;
+    this.ammoText.y = this.crosshair.y - this.ammoText.height;
+    this.ammoText.setText(
+      `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`
+    );
   }
 
   destroy() {

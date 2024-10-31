@@ -42,4 +42,12 @@ export class Weapon {
   public getFireRate(): number {
     return this.weaponConfig.rate;
   }
+
+  public getMaxAmmo(): number {
+    return this.weaponConfig.ammo;
+  }
+
+  public getCurrentAmmo(): number {
+    return this.currentAmmo;
+  }
 }
