@@ -10,6 +10,7 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
   private weapon: Weapon;
+  private keys: any;
 
   constructor(scene: CustomScene, x: number, y: number, weapon: Weapon) {
     super(scene.matter.world, x, y, 'basic-entity');
@@ -26,6 +27,7 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     this.setMass(PlayerConfig.mass);
 
     this.cursors = scene.input.keyboard?.createCursorKeys();
+    this.keys = scene.input.keyboard?.addKeys('Z,Q,S,D,R');
   }
 
   initHUD(scene: CustomScene) {
@@ -48,16 +50,20 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       y: 0,
     };
 
-    if (this.cursors?.left?.isDown) {
+    if (this.cursors?.left?.isDown || this.keys?.Q?.isDown) {
       velocity.x = -speed;
-    } else if (this.cursors?.right?.isDown) {
+    } else if (this.cursors?.right?.isDown || this.keys?.D?.isDown) {
       velocity.x = speed;
     }
 
-    if (this.cursors?.up?.isDown) {
+    if (this.cursors?.up?.isDown || this.keys?.Z?.isDown) {
       velocity.y = -speed;
-    } else if (this.cursors?.down?.isDown) {
+    } else if (this.cursors?.down?.isDown || this.keys?.S?.isDown) {
       velocity.y = speed;
+    }
+
+    if (this.keys?.R?.isDown) {
+      this.weapon.reload();
     }
 
     this.setVelocity(velocity.x, velocity.y);
