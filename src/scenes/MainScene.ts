@@ -7,6 +7,7 @@ import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
 import { SpawnConfig } from '~/config';
 
 export class MainScene extends CustomScene {
+  public crosshair!: Phaser.GameObjects.Sprite;
   private player!: BasicEntity;
   private collisionLayer: Array<Phaser.Tilemaps.TilemapLayer | null> = [];
   private enemies: Array<BasicEnemy> = [];
@@ -19,7 +20,6 @@ export class MainScene extends CustomScene {
   private spawnTimer?: Phaser.Time.TimerEvent;
   private enemyCountText?: Phaser.GameObjects.Text;
   private weapon!: Weapon;
-  private crosshair!: Phaser.GameObjects.Sprite;
   private ammoText!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -90,7 +90,7 @@ export class MainScene extends CustomScene {
     this.initialTime = 0;
 
     // ----- Initialisation de l'arme du joueur
-    this.weapon = new Weapon(this, 'rifle');
+    this.weapon = new Weapon(this, 'rifle', this.crosshair);
 
     // ----- Ajout du texte d'ammo
     this.ammoText = this.add.text(
