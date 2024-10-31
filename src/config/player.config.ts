@@ -10,6 +10,8 @@ export const PlayerConfig = {
   mass: 1,
   airFriction: 0.05,
   godMode: true,
+  dodgeDuration: 200,
+  dodgeCooldown: 1000,
 };
 
 export const PlaceyerShootConfig = {
