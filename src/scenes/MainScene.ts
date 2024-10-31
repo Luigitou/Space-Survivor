@@ -1,5 +1,11 @@
 import Phaser from 'phaser';
-import { BasicEnemy, BasicEntity, Weapon } from '~/objects';
+import {
+  BasicEnemy,
+  BasicEntity,
+  CaCEnemy,
+  RangeEnemy,
+  Weapon,
+} from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
 import { EnemySpawnPoint } from '~/objects/EnemySpawnPoint';
