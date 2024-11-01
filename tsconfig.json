@@ -21,10 +21,9 @@
     },
     "typeRoots": [
       "node_modules/@types",
-      "node_modules/phaser"
+      "node_modules/phaser/types"
     ],
     "types": [
-      "Phaser"
     ]
   },
   "include": [
