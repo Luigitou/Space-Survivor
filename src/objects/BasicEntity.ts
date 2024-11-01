@@ -1,12 +1,17 @@
 import { CustomScene } from '~/scenes/CustomScene';
 import { PlayerConfig } from '~/config';
+import { PlayerStats } from '~/objects/PlayerStats';
 import { Weapon } from '~/objects/Weapon';
 
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   public xp: number = 0;
   protected target: { x: number; y: number } = { x: 0, y: 0 };
+  private playerStats: PlayerStats = new PlayerStats(
+    this.scene,
+    this.x,
+    this.y
+  );
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  private health: number = PlayerConfig.baseHealth;
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
   private weapon: Weapon;
@@ -46,8 +51,8 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
 
   update() {
     const speed = this.isDodging
-      ? PlayerConfig.baseSpeed * 2
-      : PlayerConfig.baseSpeed;
+      ? this.playerStats.Speed * 2
+      : this.playerStats.Speed;
 
     let velocity = {
       x: 0,
@@ -83,14 +88,7 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       console.log('Player is dodging');
       return;
     }
-    this.health -= damage;
-    console.log(this.health);
-
-    if (this.health <= 0 && !PlayerConfig.godMode) {
-      console.log('Player is dead');
-      this.setActive(false);
-      this.setVisible(false);
-    }
+    this.playerStats.applyDamage(damage);
   }
 
   // Shoot a projectile
@@ -111,6 +109,11 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   public levelUp() {
     this.level++;
     this.levelText.setText('Level: ' + this.level);
+    this.playerStats.buffStats({
+      damage: this.playerStats.Damage,
+      health: this.playerStats.Health,
+      speed: this.playerStats.Speed,
+    });
   }
 
   // Level up the player

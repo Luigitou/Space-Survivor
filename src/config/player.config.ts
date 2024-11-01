@@ -3,7 +3,8 @@ export const PlayerConfig = {
   maxLevel: 100,
   xpBarMinValue: 0,
   xpBarMaxValue: 100,
-  baseHealth: 5,
+  baseHealth: 100,
+  baseDamage: 10,
   baseSpeed: 3,
   size: 32,
   bounce: 0,
@@ -14,7 +15,7 @@ export const PlayerConfig = {
   dodgeCooldown: 1000,
 };
 
-export const PlaceyerShootConfig = {
+export const PlayerShootConfig = {
   projectileSpeed: 10,
   attackRange: 300,
   attackRate: 1000,

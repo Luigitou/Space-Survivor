@@ -1,5 +1,5 @@
 import { ProjectileConfig } from '~/config';
-import { PlaceyerShootConfig } from '~/config/player.config';
+import { PlayerShootConfig } from '~/config/player.config';
 import { BasicEnemy } from '~/objects/BasicEnemy';
 
 export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
@@ -21,7 +21,7 @@ export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
     this.setFixedRotation();
     this.setSensor(true);
 
-    const speed = PlaceyerShootConfig.projectileSpeed;
+    const speed = PlayerShootConfig.projectileSpeed;
 
     // Get the target position baseed on the mouse pointer
     const pointer = scene.input.activePointer;
