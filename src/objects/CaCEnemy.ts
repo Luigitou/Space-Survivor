@@ -10,8 +10,12 @@ export class CaCEnemy extends BasicEnemy {
 
   public update() {
     if (
-      Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.y) <
-        CaCEnemyConfig.attackRange &&
+      Phaser.Math.Distance.Between(
+        this.x,
+        this.y,
+        this.target.x,
+        this.target.y
+      ) < CaCEnemyConfig.attackRange &&
       this.canAttack
     ) {
       this.performAttack();

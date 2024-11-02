@@ -134,4 +134,16 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       this.isDodging = false;
     });
   }
+
+  public getHealthPercentage(): number {
+    return this.playerStats.HealthPercentage;
+  }
+
+  public getCurrentHealth(): number {
+    return this.playerStats.Health;
+  }
+
+  public getMaxHealth(): number {
+    return this.playerStats.MaxHealth;
+  }
 }
