@@ -11,6 +11,7 @@ import { EasyStarManager } from '~/utils';
 import { EnemySpawnPoint } from '~/objects/EnemySpawnPoint';
 import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
 import { SpawnConfig } from '~/config';
+import { HealthBar } from '~/objects/HealthBar';
 
 export class MainScene extends CustomScene {
   public crosshair!: Phaser.GameObjects.Sprite;
@@ -36,6 +37,7 @@ export class MainScene extends CustomScene {
   private waveTimer?: Phaser.Time.TimerEvent;
   private weapon!: Weapon;
   private ammoText!: Phaser.GameObjects.Text;
+  private healthBar!: HealthBar;
 
   constructor() {
     super({
@@ -179,6 +181,8 @@ export class MainScene extends CustomScene {
       this.enemyCountText.setScrollFactor(0);
       this.updateEnemyCountText();
     }
+
+    this.healthBar = new HealthBar(this);
   }
 
   updateTimer() {
@@ -214,12 +218,20 @@ export class MainScene extends CustomScene {
     this.ammoText.setText(
       `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`
     );
+
+    if (this.healthBar && this.player) {
+      this.healthBar.update(
+        this.player.getCurrentHealth(),
+        this.player.getMaxHealth()
+      );
+    }
   }
 
   destroy() {
     this.spawnTimer?.destroy();
     this.enemyCountText?.destroy();
     this.spawnPoints.forEach((point) => point.destroy());
+    this.healthBar?.destroy();
   }
 
   private createSpawnPoints(map: Phaser.Tilemaps.Tilemap) {
