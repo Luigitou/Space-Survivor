@@ -219,7 +219,6 @@ export class MainScene extends CustomScene {
       `${this.weapon.getCurrentAmmo()} / ${this.weapon.getMaxAmmo()}`
     );
 
-    // Remplacer la mise à jour de la barre de vie par :
     if (this.healthBar && this.player) {
       this.healthBar.update(
         this.player.getCurrentHealth(),
