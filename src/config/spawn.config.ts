@@ -40,7 +40,7 @@ export const SpawnConfig = {
   getWave: (waveNumber: number) => generateWave(waveNumber),
 
   debug: {
-    showSpawnZones: true,
+    showSpawnZones: false,
     showEnemyCount: true,
     showWaveInfo: true,
   },

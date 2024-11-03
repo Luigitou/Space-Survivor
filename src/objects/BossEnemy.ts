@@ -39,6 +39,9 @@ export class BossEnemy extends BasicEnemy {
   }
 
   public destroy(fromScene?: boolean) {
+    this.projectileTimers.forEach((timer) => timer.destroy());
+    this.projectileTimers = [];
+
     this.scene?.tweens.killTweensOf(this);
     this.bossHealthBar.destroy();
     super.destroy(fromScene);
