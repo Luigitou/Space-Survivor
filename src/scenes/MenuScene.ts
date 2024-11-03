@@ -42,7 +42,7 @@ export class MenuScene extends Phaser.Scene {
 
     this.createButton('JOUER', baseY, () => this.scene.start('MainScene'));
     this.createButton('OPTIONS', baseY + spacing, () =>
-      console.log('Options clicked')
+      this.scene.start('OptionsScene')
     );
     this.createButton('QUITTER', baseY + spacing * 2, () =>
       console.log('Quitter clicked')
