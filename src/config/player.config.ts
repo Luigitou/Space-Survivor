@@ -12,7 +12,7 @@ export const PlayerConfig = {
   bounce: 0,
   mass: 1,
   airFriction: 0.05,
-  godMode: true,
+  godMode: false,
   dodgeDuration: 200,
   dodgeCooldown: 1000,
 };
