@@ -7,8 +7,9 @@ import { MainScene } from '~/scenes';
 export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected target!: BasicEntity;
   protected xpValue!: string;
+  protected xpCount: number = 1;
   private pathGraphics!: Phaser.GameObjects.Graphics;
-  private health: number = EnemyConfig.baseHealth;
+  protected health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -175,7 +176,13 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   }
 
   private dropXP() {
-    const xp = new Xp(this.scene, this.x, this.y, 'xp1');
-    this.scene.add.existing(xp);
+    for (let i = 0; i < this.xpCount; i++) {
+      const angleOffset = (Math.PI * 2 * i) / this.xpCount;
+      const distance = 30; // Distance du centre pour la dispersion
+      const x = this.x + Math.cos(angleOffset) * distance;
+      const y = this.y + Math.sin(angleOffset) * distance;
+      const xp = new Xp(this.scene, x, y, 'xp1');
+      this.scene.add.existing(xp);
+    }
   }
 }

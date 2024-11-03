@@ -1,8 +1,9 @@
-export type EnemyType = 'cac' | 'range';
+export type EnemyType = 'cac' | 'range' | 'boss';
 
 export interface WaveConfig {
   cacCount: number;
   rangeCount: number;
+  bossCount: number;
   spawnDelay: number;
   waveDuration?: number; // Durée max de la vague en ms (optionnel)
   requireAllDefeated: boolean; // Si true, tous les ennemis doivent être vaincus
@@ -14,6 +15,13 @@ export const SpawnConfig = {
 
   // Configuration des vagues
   waves: [
+    {
+      cacCount: 0,
+      rangeCount: 0,
+      bossCount: 1,
+      spawnDelay: 1000,
+      requireAllDefeated: true,
+    },
     {
       cacCount: 20,
       rangeCount: 1,
@@ -41,6 +49,13 @@ export const SpawnConfig = {
       spawnDelay: 700,
       waveDuration: 45000, // 45 secondes
       requireAllDefeated: false,
+    },
+    {
+      cacCount: 0,
+      rangeCount: 0,
+      bossCount: 1,
+      spawnDelay: 1000,
+      requireAllDefeated: true,
     },
   ] as WaveConfig[],
 

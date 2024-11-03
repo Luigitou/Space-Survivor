@@ -5,6 +5,7 @@ import {
   CaCEnemy,
   RangeEnemy,
   Weapon,
+  BossEnemy,
 } from '~/objects';
 import { CustomScene } from '~/scenes/CustomScene';
 import { EasyStarManager } from '~/utils';
@@ -27,9 +28,10 @@ export class MainScene extends CustomScene {
   private spawnTimer?: Phaser.Time.TimerEvent;
   private enemyCountText?: Phaser.GameObjects.Text;
   private currentWave: number = 0;
-  private remainingEnemies: { cac: number; range: number } = {
+  private remainingEnemies: { cac: number; range: number; boss: number } = {
     cac: 0,
     range: 0,
+    boss: 0,
   };
   private waveText?: Phaser.GameObjects.Text;
   private isWaveInProgress: boolean = false;
@@ -57,6 +59,7 @@ export class MainScene extends CustomScene {
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
     this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
+    this.load.image('boss', 'assets/sprites/boss.png');
   }
 
   create() {
@@ -259,6 +262,7 @@ export class MainScene extends CustomScene {
     this.remainingEnemies = {
       cac: wave.cacCount,
       range: wave.rangeCount,
+      boss: wave.bossCount || 0,
     };
     this.isWaveInProgress = true;
     this.waveStartTime = this.time.now;
@@ -298,7 +302,13 @@ export class MainScene extends CustomScene {
     // Choisir un point de spawn aléatoire
     const spawnPoint = Phaser.Utils.Array.GetRandom(this.spawnPoints);
 
-    if (this.remainingEnemies.cac > 0) {
+    if (this.remainingEnemies.boss > 0) {
+      const enemy = spawnPoint.spawnEnemy('boss');
+      if (enemy) {
+        this.setupEnemy(enemy);
+        this.remainingEnemies.boss--;
+      }
+    } else if (this.remainingEnemies.cac > 0) {
       const enemy = spawnPoint.spawnEnemy('cac');
       if (enemy) {
         this.setupEnemy(enemy);
@@ -316,7 +326,7 @@ export class MainScene extends CustomScene {
     this.updateWaveText();
   }
 
-  private setupEnemy(enemy: CaCEnemy | RangeEnemy) {
+  private setupEnemy(enemy: CaCEnemy | RangeEnemy | BossEnemy) {
     enemy.setTarget(this.player);
     this.enemies.push(enemy);
     this.updateEnemyCountText();
@@ -336,7 +346,9 @@ export class MainScene extends CustomScene {
 
     const wave = SpawnConfig.waves[this.currentWave];
     const allEnemiesSpawned =
-      this.remainingEnemies.cac === 0 && this.remainingEnemies.range === 0;
+      this.remainingEnemies.cac === 0 &&
+      this.remainingEnemies.range === 0 &&
+      this.remainingEnemies.boss === 0;
 
     const allEnemiesDefeated = this.enemies.length === 0;
     const timeExpired = wave.waveDuration
@@ -385,15 +397,17 @@ export class MainScene extends CustomScene {
         (count, enemy) => {
           if (enemy instanceof CaCEnemy) count.cac++;
           if (enemy instanceof RangeEnemy) count.range++;
+          if (enemy instanceof BossEnemy) count.boss++;
           return count;
         },
-        { cac: 0, range: 0 }
+        { cac: 0, range: 0, boss: 0 }
       );
 
       this.waveText.setText(
         `Vague: ${this.currentWave + 1}\n` +
           `CAC: ${activeEnemies.cac}/${wave.cacCount} (À spawner: ${this.remainingEnemies.cac})\n` +
           `RANGE: ${activeEnemies.range}/${wave.rangeCount} (À spawner: ${this.remainingEnemies.range})\n` +
+          `BOSS: ${activeEnemies.boss}/${wave.bossCount} (À spawner: ${this.remainingEnemies.boss})\n` +
           // On n'affiche le temps restant que si timeRemaining n'est pas null
           (timeRemaining !== null ? `Temps restant: ${timeRemaining}s\n` : '') +
           `${wave.requireAllDefeated ? '(Tous les ennemis doivent être vaincus)' : '(Passage automatique possible)'}`
@@ -407,13 +421,14 @@ export class MainScene extends CustomScene {
         (count, enemy) => {
           if (enemy instanceof CaCEnemy) count.cac++;
           if (enemy instanceof RangeEnemy) count.range++;
+          if (enemy instanceof BossEnemy) count.boss++;
           return count;
         },
-        { cac: 0, range: 0 }
+        { cac: 0, range: 0, boss: 0 }
       );
 
       this.enemyCountText.setText(
-        `Ennemis actifs: Total=${this.enemies.length} (CAC=${activeEnemies.cac}, RANGE=${activeEnemies.range})`
+        `Ennemis actifs: Total=${this.enemies.length} (CAC=${activeEnemies.cac}, RANGE=${activeEnemies.range}, BOSS=${activeEnemies.boss})`
       );
     }
   }
