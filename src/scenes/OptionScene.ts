@@ -42,6 +42,7 @@ export class OptionsScene extends Phaser.Scene {
       '',
       'ESPACE - Dash',
       'CLIC GAUCHE - Tirer',
+      'R - Recharger',
     ];
 
     // Ajout de chaque ligne de texte
