@@ -32,9 +32,9 @@ export class HealthBar {
       pulse: 0xffcc00,
     },
     {
-      main: 0x00cc66, // Vert
-      glow: 0x00dd88,
-      pulse: 0x00bb55,
+      main: 0x9933ff, // Violet
+      glow: 0xaa44ff,
+      pulse: 0x8822ff,
     },
   ];
 
@@ -192,72 +192,76 @@ export class HealthBar {
   }
 
   update(currentHealth: number, baseMaxHealth: number): void {
-    if (currentHealth > 0) {
-      const baseHealthPercent = Math.min(currentHealth / baseMaxHealth, 1);
-
-      // Couleurs différentes selon le niveau de santé
-      let colors;
-      if (baseHealthPercent > 0.7) {
-        colors = {
-          main: 0x00ff88, // Vert
-          glow: 0x00ffaa,
-          pulse: 0x00ff99,
-        };
-      } else if (baseHealthPercent > 0.3) {
-        colors = {
-          main: 0xffaa00, // Orange
-          glow: 0xffcc00,
-          pulse: 0xffbb00,
-        };
-      } else {
-        colors = {
-          main: 0xff3366, // Rouge
-          glow: 0xff4477,
-          pulse: 0xff2255,
-        };
-      }
-
-      this.drawHealthBar(this.bar, baseHealthPercent, colors);
-
-      const totalHealthPercentage = Math.floor(
-        (currentHealth / baseMaxHealth) * 100
-      );
-      this.healthText.setText(`SHIELD ENERGY: ${totalHealthPercentage}%`);
-
-      // Calcul du nombre de barres d'overflow nécessaires
-      const neededBars = Math.ceil(currentHealth / baseMaxHealth) - 1;
-
-      // Création dynamique des barres (si nécessaire)
-      while (this.overflowBars.length < neededBars) {
-        const newBar = this.scene.add.graphics();
-        this.overflowBars.push(newBar);
-        this.barContainer.add(newBar);
-      }
-
-      // Nettoyage des barres en excès
-      while (this.overflowBars.length > neededBars) {
-        const bar = this.overflowBars.pop();
-        bar?.destroy();
-      }
-
-      // Réinitialisation et dessin des barres
+    // Gérer le cas où la santé est à 0 ou négative
+    if (currentHealth <= 0) {
+      this.bar.clear();
       this.overflowBars.forEach((bar) => bar.clear());
-
-      for (let i = 0; i < this.overflowBars.length; i++) {
-        const overflowAmount = currentHealth - baseMaxHealth * (i + 1);
-        const overflowPercent = Math.min(overflowAmount / baseMaxHealth, 1);
-
-        if (overflowPercent > 0) {
-          const colorIndex = i % this.SPACE_COLORS.length;
-          this.drawHealthBar(
-            this.overflowBars[i],
-            overflowPercent,
-            this.SPACE_COLORS[colorIndex]
-          );
-        }
-      }
-    } else {
       this.healthText.setText(`SHIELD ENERGY: 0%`);
+      return;
+    }
+
+    const baseHealthPercent = Math.min(currentHealth / baseMaxHealth, 1);
+
+    // Couleurs différentes selon le niveau de santé
+    let colors;
+    if (baseHealthPercent > 0.7) {
+      colors = {
+        main: 0x00cc66, // Vert très foncé
+        glow: 0x00ffaa,
+        pulse: 0x00ff99,
+      };
+    } else if (baseHealthPercent > 0.3) {
+      colors = {
+        main: 0xffaa00, // Orange
+        glow: 0xffcc00,
+        pulse: 0xffbb00,
+      };
+    } else {
+      colors = {
+        main: 0xff3366, // Rouge
+        glow: 0xff4477,
+        pulse: 0xff2255,
+      };
+    }
+
+    this.drawHealthBar(this.bar, baseHealthPercent, colors);
+
+    const totalHealthPercentage = Math.floor(
+      (currentHealth / baseMaxHealth) * 100
+    );
+    this.healthText.setText(`SHIELD ENERGY: ${totalHealthPercentage}%`);
+
+    // Calcul du nombre de barres d'overflow nécessaires
+    const neededBars = Math.ceil(currentHealth / baseMaxHealth) - 1;
+
+    // Création dynamique des barres (si nécessaire)
+    while (this.overflowBars.length < neededBars) {
+      const newBar = this.scene.add.graphics();
+      this.overflowBars.push(newBar);
+      this.barContainer.add(newBar);
+    }
+
+    // Nettoyage des barres en excès
+    while (this.overflowBars.length > neededBars) {
+      const bar = this.overflowBars.pop();
+      bar?.destroy();
+    }
+
+    // Réinitialisation et dessin des barres
+    this.overflowBars.forEach((bar) => bar.clear());
+
+    for (let i = 0; i < this.overflowBars.length; i++) {
+      const overflowAmount = currentHealth - baseMaxHealth * (i + 1);
+      const overflowPercent = Math.min(overflowAmount / baseMaxHealth, 1);
+
+      if (overflowPercent > 0) {
+        const colorIndex = i % this.SPACE_COLORS.length;
+        this.drawHealthBar(
+          this.overflowBars[i],
+          overflowPercent,
+          this.SPACE_COLORS[colorIndex]
+        );
+      }
     }
   }
 

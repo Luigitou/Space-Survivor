@@ -81,6 +81,8 @@ export class PlayerStats extends Phaser.Physics.Matter.Sprite {
         console.log('Player is dead');
         this.setActive(false);
         this.setVisible(false);
+        this.scene.scene.launch('GameOverScene');
+        this.scene.scene.pause('MainScene');
       }
     }
   }

@@ -1,5 +1,10 @@
 export { gameConfig } from './game.config';
-export { EnemyConfig, CaCEnemyConfig, RangeEnemyConfig } from './enemy.config';
+export {
+  EnemyConfig,
+  CaCEnemyConfig,
+  RangeEnemyConfig,
+  BossEnemyConfig,
+} from './enemy.config';
 export { PlayerConfig, PlayerShootConfig, WeaponConfig } from './player.config';
 export type { WeaponConfigType } from './player.config';
 export { menuConfig } from './menuConfig';

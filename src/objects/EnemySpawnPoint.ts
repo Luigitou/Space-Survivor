@@ -2,6 +2,7 @@ import { BasicEnemy } from './BasicEnemy';
 import { RangeEnemy } from './RangeEnemy';
 import { SpawnConfig } from '~/config';
 import { CaCEnemy } from './CaCEnemy';
+import { BossEnemy } from './BossEnemy';
 
 export class EnemySpawnPoint {
   private scene: Phaser.Scene;
@@ -22,13 +23,19 @@ export class EnemySpawnPoint {
     }
   }
 
-  spawnEnemy(type: 'cac' | 'range'): CaCEnemy | RangeEnemy | null {
-    const enemy =
-      type === 'cac'
-        ? new CaCEnemy(this.scene, this.x, this.y)
-        : new RangeEnemy(this.scene, this.x, this.y);
-
-    return enemy;
+  spawnEnemy(
+    type: 'cac' | 'range' | 'boss'
+  ): CaCEnemy | RangeEnemy | BossEnemy | null {
+    switch (type) {
+      case 'cac':
+        return new CaCEnemy(this.scene, this.x, this.y);
+      case 'range':
+        return new RangeEnemy(this.scene, this.x, this.y);
+      case 'boss':
+        return new BossEnemy(this.scene, this.x, this.y);
+      default:
+        return null;
+    }
   }
 
   destroy(): void {

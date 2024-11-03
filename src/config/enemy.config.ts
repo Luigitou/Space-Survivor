@@ -20,3 +20,10 @@ export const RangeEnemyConfig = {
   attackRange: 600,
   attackRate: 1000,
 };
+
+export const BossEnemyConfig = {
+  health: 100,
+  attackRange: 800,
+  attackRate: 2000,
+  projectileSpeed: 8,
+};

@@ -218,4 +218,23 @@ export class Weapon {
         break;
     }
   }
+
+  public destroy() {
+    // Nettoyer la barre de rechargement
+    this.reloadBar?.destroy();
+
+    // Arrêter tous les événements en cours
+    this.scene.time.removeAllEvents();
+
+    // Réinitialiser les mods
+    this.weaponMods = {
+      infiniteAmmo: false,
+      burstFire: false,
+      piercingShots: false,
+    };
+
+    // Nettoyer les références
+    this.currentStatLevels = {};
+    this.maxStatLevels = {};
+  }
 }
