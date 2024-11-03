@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
 import { gameConfig, menuConfig } from '~/config';
-import { MainScene, MenuScene, LevelUpScene, GameOverScene } from '~/scenes';
+import {
+  MainScene,
+  MenuScene,
+  LevelUpScene,
+  GameOverScene,
+  OptionsScene,
+} from '~/scenes';
 
 import { resize } from '~/utils';
 
 const scenes: (typeof Phaser.Scene)[] = menuConfig.enableMainScene
-  ? [MenuScene, MainScene, LevelUpScene, GameOverScene]
-  : [MainScene, LevelUpScene, GameOverScene];
+  ? [MenuScene, MainScene, LevelUpScene, GameOverScene, OptionsScene]
+  : [MainScene, LevelUpScene, GameOverScene, OptionsScene];
 
 export const game = new Phaser.Game({
   ...gameConfig,
