@@ -10,6 +10,7 @@ export class PlayerStats extends Phaser.Physics.Matter.Sprite {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, '');
+    this.scene = scene;
 
     this.health = PlayerConfig.baseHealth;
     this.speed = PlayerConfig.baseSpeed;
@@ -36,11 +37,20 @@ export class PlayerStats extends Phaser.Physics.Matter.Sprite {
   }
 
   private set Health(value: number) {
+    console.log(`Santé modifiée : ${this.health} -> ${value}`);
+    console.trace('Stack trace de la modification de santé:');
     this.health = value;
   }
 
   private set Speed(value: number) {
     this.speed = value;
+  }
+
+  public get MaxHealth(): number {
+    return PlayerConfig.baseHealth;
+  }
+  public get HealthPercentage(): number {
+    return Math.min(Math.max((this.health / this.MaxHealth) * 100, 0), 100);
   }
 
   public buffStats(buff: playerBuffConfigType) {
@@ -63,11 +73,19 @@ export class PlayerStats extends Phaser.Physics.Matter.Sprite {
   }
 
   public applyDamage(damage: number) {
-    this.Health -= damage;
-    if (this.Health <= 0 && !PlayerConfig.godMode) {
-      console.log('Player is dead');
-      this.setActive(false);
-      this.setVisible(false);
+    if (!PlayerConfig.godMode) {
+      console.log(`Dégâts reçus : ${damage}`);
+      console.trace('Source des dégâts:');
+      this.Health -= damage;
+      if (this.Health <= 0) {
+        console.log('Player is dead');
+        this.setActive(false);
+        this.setVisible(false);
+      }
     }
+  }
+
+  public setHealth(value: number): void {
+    this.health = Math.min(Math.max(value, 0), this.MaxHealth);
   }
 }

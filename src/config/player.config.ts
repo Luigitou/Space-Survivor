@@ -3,7 +3,7 @@ export const PlayerConfig = {
   maxLevel: 100,
   xpBarMinValue: 0,
   xpBarMaxValue: 100,
-  baseHealth: 100,
+  baseHealth: 10,
   baseMaxHealth: 100,
   minHealth: 0,
   baseSpeed: 2.5,
@@ -12,7 +12,7 @@ export const PlayerConfig = {
   bounce: 0,
   mass: 1,
   airFriction: 0.05,
-  godMode: true,
+  godMode: false,
   dodgeDuration: 200,
   dodgeCooldown: 1000,
 };

@@ -6,7 +6,11 @@ import { Weapon } from '~/objects/Weapon';
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   public xp: number = 0;
   protected target: { x: number; y: number } = { x: 0, y: 0 };
-  public playerStats: PlayerStats = new PlayerStats(this.scene, this.x, this.y);
+  public playerStats: PlayerStats = new PlayerStats(
+    this.scene as CustomScene,
+    this.x,
+    this.y
+  );
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
@@ -134,5 +138,17 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     this.scene.time.delayedCall(PlayerConfig.dodgeDuration, () => {
       this.isDodging = false;
     });
+  }
+
+  public getHealthPercentage(): number {
+    return this.playerStats.HealthPercentage;
+  }
+
+  public getCurrentHealth(): number {
+    return this.playerStats.Health;
+  }
+
+  public getMaxHealth(): number {
+    return this.playerStats.MaxHealth;
   }
 }

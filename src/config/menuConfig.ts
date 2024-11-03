@@ -3,5 +3,5 @@ type MenuConfig = {
 };
 
 export const menuConfig = {
-  enableMainScene: false,
+  enableMainScene: true,
 } satisfies MenuConfig;

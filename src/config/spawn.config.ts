@@ -15,9 +15,9 @@ export const SpawnConfig = {
   // Configuration des vagues
   waves: [
     {
-      cacCount: 3,
+      cacCount: 20,
       rangeCount: 1,
-      spawnDelay: 1000,
+      spawnDelay: 100,
       waveDuration: 30000, // 30 secondes
       requireAllDefeated: true,
     },
