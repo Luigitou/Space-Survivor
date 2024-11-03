@@ -16,17 +16,17 @@ export const SpawnConfig = {
   // Configuration des vagues
   waves: [
     {
-      cacCount: 0,
-      rangeCount: 0,
-      bossCount: 1,
-      spawnDelay: 1000,
-      requireAllDefeated: true,
-    },
-    {
       cacCount: 20,
       rangeCount: 1,
       spawnDelay: 100,
       waveDuration: 30000, // 30 secondes
+      requireAllDefeated: true,
+    },
+    {
+      cacCount: 0,
+      rangeCount: 0,
+      bossCount: 1,
+      spawnDelay: 1000,
       requireAllDefeated: true,
     },
     {
