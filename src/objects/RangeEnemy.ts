@@ -5,10 +5,18 @@ export class RangeEnemy extends BasicEnemy {
   private canShoot: boolean = true;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y);
+    super(scene, x, y, 'enemy-range');
   }
 
   public update() {
+    if (this.target) {
+      if (this.target.x < this.x) {
+        this.scaleX = -1;
+      } else {
+        this.scaleX = 1;
+      }
+    }
+
     if (this.checkAttack() && this.hasLineOfSight() && this.canShoot) {
       this.fireProjectile();
     } else if (this.checkIfRangeAttack()) {

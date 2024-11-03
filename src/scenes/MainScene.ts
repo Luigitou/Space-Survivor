@@ -66,6 +66,8 @@ export class MainScene extends CustomScene {
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
     this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
+    this.load.image('enemy-cac', 'assets/sprites/enemy/cqc/Character.png');
+    this.load.image('enemy-range', 'assets/sprites/enemy/range/Character.png');
     this.load.image('boss', 'assets/sprites/boss.png');
   }
 
@@ -98,7 +100,6 @@ export class MainScene extends CustomScene {
     this.crosshair = this.add.sprite(50, 50, 'crosshair');
     this.crosshair.setDepth(1000);
     this.crosshair.setScale(0.5);
-    console.log(this.crosshair);
     this.input.setDefaultCursor('none');
 
     // ----- Creation de la map

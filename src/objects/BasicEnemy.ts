@@ -12,10 +12,11 @@ export class BasicEnemy extends Phaser.Physics.Matter.Sprite {
   protected health: number = EnemyConfig.baseHealth;
   private path: { x: number; y: number }[] = [];
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene.matter.world, x, y, 'enemy');
+  constructor(scene: Phaser.Scene, x: number, y: number, texture: string) {
+    super(scene.matter.world, x, y, texture);
 
     scene.add.existing(this);
+    this.setDepth(750);
 
     this.setDisplaySize(EnemyConfig.sizeSprite, EnemyConfig.sizeSprite);
     this.setCircle(EnemyConfig.sizeHitbox);
