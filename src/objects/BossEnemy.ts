@@ -10,11 +10,38 @@ export class BossEnemy extends BasicEnemy {
   private projectileTimers: Phaser.Time.TimerEvent[] = [];
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y);
+    super(scene, x, y, 'boss');
     this.setTexture('boss');
     this.health = BossEnemyConfig.health;
     this.xpCount = 15;
     this.createHealthBar();
+  }
+
+  public update() {
+    if (this.checkAttackRange() && this.canShoot) {
+      this.fireProjectiles();
+    } else {
+      super.update();
+    }
+
+    this.updateHealthBar();
+  }
+
+  public takeDamage(damage: number) {
+    super.takeDamage(damage);
+
+    if (this.health <= BossEnemyConfig.health * 0.3) {
+      this.currentPhase = 3;
+      this.startBlinking();
+    } else if (this.health <= BossEnemyConfig.health * 0.6) {
+      this.currentPhase = 2;
+    }
+  }
+
+  public destroy(fromScene?: boolean) {
+    this.scene?.tweens.killTweensOf(this);
+    this.bossHealthBar.destroy();
+    super.destroy(fromScene);
   }
 
   private createHealthBar() {
@@ -65,16 +92,6 @@ export class BossEnemy extends BasicEnemy {
 
     this.bossHealthBar.add([background, healthBar, bossText]);
     this.bossHealthBar.setDepth(1000);
-  }
-
-  public update() {
-    if (this.checkAttackRange() && this.canShoot) {
-      this.fireProjectiles();
-    } else {
-      super.update();
-    }
-
-    this.updateHealthBar();
   }
 
   private updateHealthBar() {
@@ -217,17 +234,6 @@ export class BossEnemy extends BasicEnemy {
     }
   }
 
-  public takeDamage(damage: number) {
-    super.takeDamage(damage);
-
-    if (this.health <= BossEnemyConfig.health * 0.3) {
-      this.currentPhase = 3;
-      this.startBlinking();
-    } else if (this.health <= BossEnemyConfig.health * 0.6) {
-      this.currentPhase = 2;
-    }
-  }
-
   private startBlinking() {
     if (!this.scene) return;
 
@@ -247,11 +253,5 @@ export class BossEnemy extends BasicEnemy {
         this.clearTint();
       },
     });
-  }
-
-  public destroy(fromScene?: boolean) {
-    this.scene?.tweens.killTweensOf(this);
-    this.bossHealthBar.destroy();
-    super.destroy(fromScene);
   }
 }
