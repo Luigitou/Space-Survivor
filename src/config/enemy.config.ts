@@ -6,7 +6,7 @@ export const EnemyConfig = {
   airFriction: 0.05,
   bounce: 1,
   mass: 1,
-  showPath: true,
+  showPath: false,
   pathDelay: 500,
 };
 
