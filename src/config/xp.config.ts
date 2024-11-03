@@ -1,6 +1,6 @@
 export const XpConfig = {
-  xpValue: 25,
-  hitboxSize: 10,
+  xpValue: 10,
+  hitboxSize: 15,
   displaySize: 64,
   noHitBoxDelay: 50,
 };

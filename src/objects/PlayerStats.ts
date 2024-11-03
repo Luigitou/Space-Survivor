@@ -1,31 +1,34 @@
 import { PlayerConfig } from '~/config/player.config';
-import { bootOfSwiftness, maxHealth, strongBullet } from '~/config/buff.config';
-
+import { playerBuffConfig } from '~/config';
+import { playerBuffConfigType } from '~/config';
 export class PlayerStats extends Phaser.Physics.Matter.Sprite {
   private health: number;
-  private damage: number;
   private speed: number;
-  private currentHealthStatLevel: number;
-  private currentDamageStatLevel: number;
-  private currentSpeedStatLevel: number;
+
+  public currentStatLevels: { [key: string]: number };
+  public maxStatLevels: { [key: string]: number };
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene.matter.world, x, y, '');
 
     this.health = PlayerConfig.baseHealth;
-    this.damage = PlayerConfig.baseDamage;
     this.speed = PlayerConfig.baseSpeed;
-    this.currentHealthStatLevel = 0;
-    this.currentDamageStatLevel = 0;
-    this.currentSpeedStatLevel = 0;
+
+    // Initialisation des niveaux de statistiques actuels
+    this.currentStatLevels = {};
+    for (const key in playerBuffConfig) {
+      this.currentStatLevels[key] = 0;
+    }
+
+    // Initialisation des niveaux de statistiques max
+    this.maxStatLevels = {};
+    for (const key in playerBuffConfig) {
+      this.maxStatLevels[key] = playerBuffConfig[key].maxLevel;
+    }
   }
 
   public get Health(): number {
     return this.health;
-  }
-
-  public get Damage(): number {
-    return this.damage;
   }
 
   public get Speed(): number {
@@ -36,42 +39,27 @@ export class PlayerStats extends Phaser.Physics.Matter.Sprite {
     this.health = value;
   }
 
-  private set Damage(value: number) {
-    this.damage = value;
-  }
-
   private set Speed(value: number) {
     this.speed = value;
   }
 
-  public buffStats(stats: {
-    health?: number;
-    damage?: number;
-    speed?: number;
-    fireRate?: number;
-  }) {
-    console.log(stats);
-    if (
-      stats.health !== undefined &&
-      this.currentHealthStatLevel < maxHealth.maxLevel
-    ) {
-      this.Health += this.health * maxHealth.buffPercent;
-      this.currentHealthStatLevel++;
+  public buffStats(buff: playerBuffConfigType) {
+    const buffName = buff.name;
+    if (this.currentStatLevels[buffName] < this.maxStatLevels[buffName]) {
+      const statType = buff.type;
+      this[statType] += this[statType] * buff.buffPercent;
+      this.currentStatLevels[buffName]++;
+      console.log(
+        `${buffName.charAt(0).toUpperCase() + buffName.slice(1)}: ${this[statType]}`
+      );
+      console.log(
+        `Current level of ${buffName}: ${this.currentStatLevels[buffName]}`
+      );
     }
-    if (
-      stats.damage !== undefined &&
-      this.currentDamageStatLevel < strongBullet.maxLevel
-    ) {
-      this.Damage += this.damage * strongBullet.buffPercent;
-      this.currentDamageStatLevel++;
-    }
-    if (
-      stats.speed !== undefined &&
-      this.currentSpeedStatLevel < bootOfSwiftness.maxLevel
-    ) {
-      this.Speed += this.speed * bootOfSwiftness.buffPercent;
-      this.currentSpeedStatLevel++;
-    }
+  }
+
+  public isStatAlreadyMaxed(stat: string): boolean {
+    return this.currentStatLevels[stat] >= this.maxStatLevels[stat];
   }
 
   public applyDamage(damage: number) {

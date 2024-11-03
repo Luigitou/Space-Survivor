@@ -1,14 +1,23 @@
 import { ProjectileConfig } from '~/config';
 import { PlayerShootConfig } from '~/config/player.config';
 import { BasicEnemy } from '~/objects/BasicEnemy';
+import { Weapon } from '~/objects/Weapon';
 
 export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
   private readonly damage: number;
+  private readonly buffEffects!: string[];
+  private readonly weapon!: Weapon;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, damage: number) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    damage: number,
+    weapon: Weapon
+  ) {
     super(scene.matter.world, x, y, 'playerLaser');
     scene.sound.play('laserSound');
-
+    this.damage = damage;
     this.damage = damage;
 
     scene.add.existing(this);
@@ -23,7 +32,6 @@ export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
 
     const speed = PlayerShootConfig.projectileSpeed;
 
-    // Get the target position baseed on the mouse pointer
     const pointer = scene.input.activePointer;
     const target = { x: pointer.worldX, y: pointer.worldY };
 
@@ -33,6 +41,7 @@ export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
     this.rotation = angle;
 
     this.setOnCollide(this.handleCollision.bind(this));
+    this.weapon = weapon;
   }
 
   private handleCollision(
@@ -43,18 +52,27 @@ export class PlayerProjectile extends Phaser.Physics.Matter.Sprite {
 
     try {
       if (otherBody.gameObject) {
-        const targetObject = otherBody.gameObject;
-
-        if (targetObject instanceof BasicEnemy) {
-          if (!targetObject.scene) return;
-          targetObject.takeDamage(this.damage);
-          this.destroy();
-        } else if (targetObject instanceof Phaser.Physics.Matter.TileBody) {
-          this.destroy();
-        }
+        this.processCollision(otherBody.gameObject);
       }
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  private processCollision(targetObject: any) {
+    if (targetObject instanceof BasicEnemy) {
+      this.handleBasicEnemyCollision(targetObject);
+    } else if (targetObject instanceof Phaser.Physics.Matter.TileBody) {
+      this.destroy();
+    }
+  }
+
+  private handleBasicEnemyCollision(targetObject: BasicEnemy) {
+    if (!targetObject.scene) return;
+    targetObject.takeDamage(this.damage);
+
+    if (!this.weapon.getWeaponMods('piercingShots')) {
+      this.destroy();
     }
   }
 }

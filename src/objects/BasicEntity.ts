@@ -6,11 +6,7 @@ import { Weapon } from '~/objects/Weapon';
 export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   public xp: number = 0;
   protected target: { x: number; y: number } = { x: 0, y: 0 };
-  private playerStats: PlayerStats = new PlayerStats(
-    this.scene,
-    this.x,
-    this.y
-  );
+  public playerStats: PlayerStats = new PlayerStats(this.scene, this.x, this.y);
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private level: number = 1;
   private levelText!: Phaser.GameObjects.Text;
@@ -109,11 +105,16 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   public levelUp() {
     this.level++;
     this.levelText.setText('Level: ' + this.level);
-    this.playerStats.buffStats({
-      damage: this.playerStats.Damage,
-      health: this.playerStats.Health,
-      speed: this.playerStats.Speed,
+    this.scene.scene.pause('MainScene');
+    this.scene.scene.launch('LevelUpScene', {
+      playerStats: this.playerStats,
+      weapon: this.weapon,
     });
+    // this.playerStats.buffStats({
+    //   damage: this.playerStats.Damage,
+    //   health: this.playerStats.Health,
+    //   speed: this.playerStats.Speed,
+    // });
   }
 
   // Level up the player

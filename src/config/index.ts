@@ -7,10 +7,8 @@ export { MapConfig } from './map.config';
 export { ProjectileConfig } from './projectiles.config';
 export { XpConfig } from './xp.config';
 export { SpawnConfig } from './SpawnConfig';
-export {
-  rapidFire,
-  bootOfSwiftness,
-  maxHealth,
-  strongBullet,
-  xbGainBoost,
+export { playerBuffConfig, weaponsBuffConfig } from './buff.config';
+export type {
+  playerBuffConfigType,
+  weaponsBuffConfigType,
 } from './buff.config';
