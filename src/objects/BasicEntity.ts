@@ -19,9 +19,16 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
   private isDodging: boolean = false;
   private lastDodgeTime: number = 0;
 
-  constructor(scene: CustomScene, x: number, y: number, weapon: Weapon) {
-    super(scene.matter.world, x, y, 'basic-entity');
+  constructor(
+    scene: CustomScene,
+    x: number,
+    y: number,
+    texture: string,
+    weapon: Weapon
+  ) {
+    super(scene.matter.world, x, y, 'player-right');
     this.setActive(true);
+    this.setVisible(true);
     this.weapon = weapon;
 
     scene.add.existing(this);
@@ -60,8 +67,12 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
     };
 
     if (this.cursors?.left?.isDown || this.keys?.Q?.isDown) {
+      this.anims.play('walk-left', true);
+
       velocity.x = -speed;
     } else if (this.cursors?.right?.isDown || this.keys?.D?.isDown) {
+      this.anims.play('walk-right', true);
+
       velocity.x = speed;
     }
 

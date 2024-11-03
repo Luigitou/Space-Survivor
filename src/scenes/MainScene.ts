@@ -48,6 +48,14 @@ export class MainScene extends CustomScene {
 
   preload() {
     this.load.tilemapTiledJSON('map', 'assets/map/Map.json');
+    this.load.spritesheet('player-left', 'assets/sprites/player/left.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
+    this.load.spritesheet('player-right', 'assets/sprites/player/right.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
     this.load.image('tiles', 'assets/map/Map-tileset.png');
     this.load.image('enemy', 'assets/sprites/enemy.png');
     this.load.image('enemyLaser', 'assets/sprites/laser-sprites/02.png');
@@ -61,6 +69,26 @@ export class MainScene extends CustomScene {
 
   create() {
     super.create();
+
+    this.anims.create({
+      key: 'walk-left',
+      frames: this.anims.generateFrameNumbers('player-left', {
+        start: 0,
+        end: 3,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: 'walk-right',
+      frames: this.anims.generateFrameNumbers('player-right', {
+        start: 0,
+        end: 3,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
 
     // Création du crosshair
     this.crosshair = this.add.sprite(50, 50, 'crosshair');
@@ -127,6 +155,7 @@ export class MainScene extends CustomScene {
       this,
       200,
       map.heightInPixels - 200,
+      'player-right',
       this.weapon
     );
     this.player.initHUD(this);
