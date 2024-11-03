@@ -45,7 +45,8 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
       fontStyle: 'bold',
     });
 
-    // Example usage of hudContainer
+    this.levelText.setVisible(false);
+
     scene.hudContainer.add(this.levelText);
   }
 
@@ -150,5 +151,9 @@ export class BasicEntity extends Phaser.Physics.Matter.Sprite {
 
   public getMaxHealth(): number {
     return this.playerStats.MaxHealth;
+  }
+
+  public getLevel(): number {
+    return this.level;
   }
 }

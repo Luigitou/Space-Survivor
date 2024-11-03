@@ -23,18 +23,28 @@ export class BossEnemy extends BasicEnemy {
     this.bossHealthBar = this.scene.add.container(screenCenterX, 30);
     this.bossHealthBar.setScrollFactor(0);
 
-    // Texte "BOSS"
-    const bossText = this.scene.add.text(0, -10, 'BOSS', {
+    // Texte "BOSS" avec contour noir
+    const bossText = this.scene.add.text(0, -5, 'BOSS', {
       fontSize: '24px',
-      color: '#ff0000',
+      color: '#e6e6e6', // Blanc cassé pour un look spatial
       fontFamily: 'Arial Black',
+      stroke: '#000000',
+      strokeThickness: 4,
     });
-    bossText.setOrigin(0.8);
+    bossText.setOrigin(0.5, 0.8);
 
-    // Fond de la barre de vie
+    // Fond de la barre de vie avec bordure plus visible
     const background = this.scene.add.graphics();
-    background.fillStyle(0x000000, 0.8);
+    background.lineStyle(2, 0x000000, 1); // Contour noir
+    background.fillStyle(0x1a1a1a, 0.9); // Fond très sombre
     background.fillRoundedRect(
+      -this.healthBarWidth / 2,
+      0,
+      this.healthBarWidth,
+      this.healthBarHeight,
+      5
+    );
+    background.strokeRoundedRect(
       -this.healthBarWidth / 2,
       0,
       this.healthBarWidth,
@@ -74,7 +84,7 @@ export class BossEnemy extends BasicEnemy {
     ) as Phaser.GameObjects.Graphics;
 
     healthBar.clear();
-    healthBar.fillStyle(0xff0000, 1);
+    healthBar.fillStyle(0xff3333, 1);
     healthBar.fillRoundedRect(
       -this.healthBarWidth / 2,
       0,
@@ -82,6 +92,16 @@ export class BossEnemy extends BasicEnemy {
       this.healthBarHeight,
       5
     );
+
+    // Ajout d'une brillance sur le dessus pour un effet subtil
+    healthBar.lineStyle(1, 0xffffff, 0.3);
+    healthBar.beginPath();
+    healthBar.moveTo(-this.healthBarWidth / 2, 1);
+    healthBar.lineTo(
+      -this.healthBarWidth / 2 + this.healthBarWidth * healthPercentage,
+      1
+    );
+    healthBar.strokePath();
   }
 
   private checkAttackRange(): boolean {

@@ -32,9 +32,9 @@ export class HealthBar {
       pulse: 0xffcc00,
     },
     {
-      main: 0x00cc66, // Vert
-      glow: 0x00dd88,
-      pulse: 0x00bb55,
+      main: 0x9933ff, // Violet
+      glow: 0xaa44ff,
+      pulse: 0x8822ff,
     },
   ];
 
@@ -206,7 +206,7 @@ export class HealthBar {
     let colors;
     if (baseHealthPercent > 0.7) {
       colors = {
-        main: 0x00ff88, // Vert
+        main: 0x00cc66, // Vert très foncé
         glow: 0x00ffaa,
         pulse: 0x00ff99,
       };

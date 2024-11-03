@@ -26,7 +26,6 @@ export class MainScene extends CustomScene {
   private initialTime: number = 0;
   private spawnPoints: EnemySpawnPoint[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
-  private enemyCountText?: Phaser.GameObjects.Text;
   private currentWave: number = 0;
   private remainingEnemies: { cac: number; range: number; boss: number } = {
     cac: 0,
@@ -106,6 +105,8 @@ export class MainScene extends CustomScene {
         fontStyle: 'bold',
       }
     );
+    // Masquer le texte du timer
+    this.timerText.setVisible(false);
     this.hudContainer.add(this.timerText);
 
     // ----- Initialisation du chronomètre
@@ -163,10 +164,18 @@ export class MainScene extends CustomScene {
 
     // Ajout du texte pour la vague
     if (SpawnConfig.debug.showWaveInfo) {
-      this.waveText = this.add.text(16, 48, '', {
-        color: '#ffffff',
-        backgroundColor: '#000000',
-      });
+      this.waveText = this.add
+        .text(16, 16, '', {
+          color: '#00ffff', // Cyan futuriste
+          backgroundColor: '#000033aa', // Bleu foncé semi-transparent
+          padding: { x: 15, y: 10 },
+          fontSize: '14px',
+          fontFamily: 'Courier New', // Police monospace pour un look plus technique
+          align: 'left',
+          fixedWidth: 300,
+          lineSpacing: 5,
+        })
+        .setStroke('#003333', 2); // Contour pour effet holographique
       this.waveText.setScrollFactor(0);
       this.updateWaveText();
     }
@@ -177,15 +186,6 @@ export class MainScene extends CustomScene {
     // ----- Ajout de la camera
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.startFollow(this.player);
-
-    if (SpawnConfig.debug.showEnemyCount) {
-      this.enemyCountText = this.add.text(16, 16, '', {
-        color: '#ffffff',
-        backgroundColor: '#000000',
-      });
-      this.enemyCountText.setScrollFactor(0);
-      this.updateEnemyCountText();
-    }
 
     this.healthBar = new HealthBar(this);
   }
@@ -257,12 +257,7 @@ export class MainScene extends CustomScene {
   }
 
   private startNextWave() {
-    if (this.currentWave >= SpawnConfig.waves.length) {
-      console.log('Toutes les vagues sont terminées !');
-      return;
-    }
-
-    const wave = SpawnConfig.waves[this.currentWave];
+    const wave = SpawnConfig.getWave(this.currentWave);
     this.remainingEnemies = {
       cac: wave.cacCount,
       range: wave.rangeCount,
@@ -294,14 +289,9 @@ export class MainScene extends CustomScene {
   }
 
   private spawnEnemies() {
-    if (this.currentWave >= SpawnConfig.waves.length) {
-      this.spawnTimer?.destroy();
-      return;
-    }
-
     if (!this.isWaveInProgress) return;
 
-    const wave = SpawnConfig.waves[this.currentWave];
+    const wave = SpawnConfig.getWave(this.currentWave);
 
     // Choisir un point de spawn aléatoire
     const spawnPoint = Phaser.Utils.Array.GetRandom(this.spawnPoints);
@@ -333,22 +323,17 @@ export class MainScene extends CustomScene {
   private setupEnemy(enemy: CaCEnemy | RangeEnemy | BossEnemy) {
     enemy.setTarget(this.player);
     this.enemies.push(enemy);
-    this.updateEnemyCountText();
+    this.updateWaveText();
 
     enemy.once('destroy', () => {
       this.enemies = this.enemies.filter((e) => e !== enemy);
-      this.updateEnemyCountText();
+      this.updateWaveText();
       this.checkWaveCompletion();
     });
   }
 
   private checkWaveCompletion(forceNextWave: boolean = false) {
-    if (this.currentWave >= SpawnConfig.waves.length) {
-      this.isWaveInProgress = false;
-      return;
-    }
-
-    const wave = SpawnConfig.waves[this.currentWave];
+    const wave = SpawnConfig.getWave(this.currentWave);
     const allEnemiesSpawned =
       this.remainingEnemies.cac === 0 &&
       this.remainingEnemies.range === 0 &&
@@ -379,14 +364,7 @@ export class MainScene extends CustomScene {
   private updateWaveText() {
     if (!this.scene.isActive() || !this.waveText?.active) return;
 
-    if (this.currentWave >= SpawnConfig.waves.length) {
-      this.waveText.setText('Toutes les vagues sont terminées !');
-      return;
-    }
-
-    const wave = SpawnConfig.waves[this.currentWave];
-
-    // On calcule le temps restant uniquement si requireAllDefeated est false
+    const wave = SpawnConfig.getWave(this.currentWave);
     const timeRemaining =
       !wave.requireAllDefeated && wave.waveDuration
         ? Math.max(
@@ -399,6 +377,7 @@ export class MainScene extends CustomScene {
 
     const activeEnemies = this.enemies.reduce(
       (count, enemy) => {
+        if (!enemy.active) return count;
         if (enemy instanceof CaCEnemy) count.cac++;
         if (enemy instanceof RangeEnemy) count.range++;
         if (enemy instanceof BossEnemy) count.boss++;
@@ -407,38 +386,27 @@ export class MainScene extends CustomScene {
       { cac: 0, range: 0, boss: 0 }
     );
 
+    const minutes = Math.floor(this.initialTime / 60);
+    const seconds = this.initialTime % 60;
+    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
     this.waveText.setText(
-      `Vague: ${this.currentWave + 1}\n` +
-        `CAC: ${activeEnemies.cac}/${wave.cacCount} (À spawner: ${this.remainingEnemies.cac})\n` +
-        `RANGE: ${activeEnemies.range}/${wave.rangeCount} (À spawner: ${this.remainingEnemies.range})\n` +
-        `BOSS: ${activeEnemies.boss}/${wave.bossCount} (À spawner: ${this.remainingEnemies.boss})\n` +
-        // On n'affiche le temps restant que si timeRemaining n'est pas null
-        (timeRemaining !== null ? `Temps restant: ${timeRemaining}s\n` : '') +
-        `${wave.requireAllDefeated ? '(Tous les ennemis doivent être vaincus)' : '(Passage automatique possible)'}`
+      `[ VAGUE ${this.currentWave + 1} ]\n` +
+        `━━━━━━━━━━━━━━━━━━━\n\n` +
+        `⏱️ TEMPS: ${timeString}\n` +
+        `UNITÉS HOSTILES:\n` +
+        `◢ UNITÉS MÊLÉE    [${activeEnemies.cac}/${wave.cacCount}]\n` +
+        `◢ UNITÉS DISTANCE [${activeEnemies.range}/${wave.rangeCount}]\n` +
+        `◢ UNITÉ BOSS      [${activeEnemies.boss}/${wave.bossCount || 0}]\n\n` +
+        (timeRemaining !== null ? `TEMPS RESTANT: ${timeRemaining}s\n\n` : '') +
+        `${
+          wave.requireAllDefeated
+            ? '❗ÉLIMINATION TOTALE REQUISE❗'
+            : '🚀 PROGRESSION AUTOMATIQUE 🚀'
+        }\n\n` +
+        `━━━━━━━━━━━━━━━━━━━\n` +
+        `✨ NIVEAU JOUEUR: ${this.player.getLevel()} ✨`
     );
-  }
-
-  private updateEnemyCountText() {
-    if (!this.scene.isActive()) return;
-
-    if (this.enemyCountText) {
-      const activeEnemies = this.enemies.reduce(
-        (count, enemy) => {
-          if (!enemy.active) return count;
-          if (enemy instanceof CaCEnemy) count.cac++;
-          if (enemy instanceof RangeEnemy) count.range++;
-          if (enemy instanceof BossEnemy) count.boss++;
-          return count;
-        },
-        { cac: 0, range: 0, boss: 0 }
-      );
-
-      if (this.enemyCountText.active) {
-        this.enemyCountText.setText(
-          `Ennemis actifs: Total=${this.enemies.length} (CAC=${activeEnemies.cac}, RANGE=${activeEnemies.range}, BOSS=${activeEnemies.boss})`
-        );
-      }
-    }
   }
 
   public restartScene() {
