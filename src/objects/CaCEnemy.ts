@@ -6,6 +6,8 @@ export class CaCEnemy extends BasicEnemy {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'enemy-cac');
+    this.setDisplaySize(64, 64);
+    this.setFrame('Attack_01 0.png');
   }
 
   public update() {
@@ -35,8 +37,14 @@ export class CaCEnemy extends BasicEnemy {
   private performAttack() {
     this.canAttack = false;
 
-    // Applique des dégâts au joueur
-    this.target.takeDamage(1);
+    // Joue l'animation d'attaque
+    this.play('cac-attack');
+
+    // Applique les dégâts au joueur après un délai correspondant au moment de l'impact dans l'animation
+    this.scene.time.delayedCall(300, () => {
+      // Ajuste le délai selon ton animation
+      this.target.takeDamage(1);
+    });
 
     // Réactive l'attaque après le temps de recharge
     this.scene.time.delayedCall(CaCEnemyConfig.attackRate, () => {
