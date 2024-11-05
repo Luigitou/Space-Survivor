@@ -13,6 +13,7 @@ import { EnemySpawnPoint } from '~/objects/EnemySpawnPoint';
 import { EnemySpawnFactory } from '~/factories/EnemySpawnFactory';
 import { SpawnConfig } from '~/config';
 import { HealthBar } from '~/objects/HealthBar';
+import { MusicManager } from '~/utils';
 
 export class MainScene extends CustomScene {
   public crosshair!: Phaser.GameObjects.Sprite;
@@ -69,12 +70,15 @@ export class MainScene extends CustomScene {
     this.load.image('enemy-cac', 'assets/sprites/enemy/cqc/Character.png');
     this.load.image('enemy-range', 'assets/sprites/enemy/range/Character.png');
     this.load.image('boss', 'assets/sprites/boss.png');
+    MusicManager.getInstance().preloadSceneMusic(this);
   }
 
   create() {
     this.initializeScene();
 
     super.create();
+
+    MusicManager.getInstance().playSceneMusic(this);
 
     this.anims.create({
       key: 'walk-left',
@@ -263,6 +267,9 @@ export class MainScene extends CustomScene {
   }
 
   public destroy() {
+    // Arrêter la musique avant de détruire la scène
+    MusicManager.getInstance().stopCurrentMusic();
+
     // Arrêter tous les timers
     this.spawnTimer?.destroy();
     this.waveTimer?.destroy();
@@ -440,6 +447,9 @@ export class MainScene extends CustomScene {
   }
 
   public restartScene() {
+    // Arrêter la musique avant de redémarrer
+    MusicManager.getInstance().stopCurrentMusic();
+
     this.events.removeAllListeners();
 
     this.scene.stop();

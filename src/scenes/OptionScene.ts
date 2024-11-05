@@ -1,12 +1,19 @@
-export class OptionsScene extends Phaser.Scene {
-  private backgroundMusic!: Phaser.Sound.BaseSound;
+import { MusicManager } from '~/utils';
 
+export class OptionsScene extends Phaser.Scene {
   constructor() {
     super('OptionsScene');
   }
 
+  preload() {
+    MusicManager.getInstance().preloadSceneMusic(this);
+  }
+
   create() {
     const { width, height } = this.scale;
+
+    // Démarrer la musique des options
+    MusicManager.getInstance().playSceneMusic(this);
 
     // Ajout du fond d'écran
     this.add
@@ -66,6 +73,7 @@ export class OptionsScene extends Phaser.Scene {
 
     // Bouton retour
     this.createButton('RETOUR', height * 0.85, () => {
+      MusicManager.getInstance().stopCurrentMusic();
       this.scene.start('MenuScene');
     });
   }

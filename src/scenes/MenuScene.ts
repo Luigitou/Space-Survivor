@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
+import { MusicManager } from '~/utils/';
 
 export class MenuScene extends Phaser.Scene {
-  private backgroundMusic!: Phaser.Sound.BaseSound;
-
   constructor() {
     super('MenuScene');
   }
@@ -10,10 +9,10 @@ export class MenuScene extends Phaser.Scene {
   preload() {
     this.load.image('space', 'assets/backgroundMainMenu.png');
     this.load.image('star', 'assets/star.png');
-    this.load.audio('titleScreen', 'audio/titleScreen.ogg');
     this.load.audio('buttonHover', 'audio/hover.wav');
     this.load.audio('buttonClick', 'audio/click.wav');
     this.load.image('titleImage', 'assets/logo.png');
+    MusicManager.getInstance().preloadSceneMusic(this);
   }
 
   create() {
@@ -48,11 +47,7 @@ export class MenuScene extends Phaser.Scene {
       console.log('Quitter clicked')
     );
 
-    this.backgroundMusic = this.sound.add('titleScreen', {
-      loop: true,
-      volume: 0.2,
-    });
-    this.backgroundMusic.play();
+    MusicManager.getInstance().playSceneMusic(this);
   }
 
   private createButton(text: string, y: number, callback: () => void): void {

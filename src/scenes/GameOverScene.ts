@@ -1,12 +1,20 @@
 import Phaser from 'phaser';
+import { MusicManager } from '~/utils';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameOverScene' });
   }
 
+  preload() {
+    MusicManager.getInstance().preloadSceneMusic(this);
+  }
+
   create() {
     const { width, height } = this.scale;
+
+    // Démarrer la musique de game over
+    MusicManager.getInstance().playSceneMusic(this);
 
     // Ajout d'un fond semi-transparent noir
     const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.7);
@@ -32,12 +40,14 @@ export class GameOverScene extends Phaser.Scene {
 
     // Création des boutons
     this.createButton(width / 2, height / 2 + 50, 'RÉESSAYER', () => {
+      MusicManager.getInstance().stopCurrentMusic();
       this.scene.stop('GameOverScene');
       this.scene.stop('MainScene');
       this.scene.start('MainScene');
     });
 
     this.createButton(width / 2, height / 2 + 130, 'MENU PRINCIPAL', () => {
+      MusicManager.getInstance().stopCurrentMusic();
       this.scene.stop('GameOverScene');
       this.scene.stop('MainScene');
       this.scene.start('MenuScene');
