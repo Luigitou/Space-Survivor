@@ -41,7 +41,7 @@ export class MenuScene extends Phaser.Scene {
     const spacing = 90;
 
     this.createButton('JOUER', baseY, () => this.scene.start('MainScene'));
-    this.createButton('OPTIONS', baseY + spacing, () =>
+    this.createButton('COMMANDES', baseY + spacing, () =>
       this.scene.start('OptionsScene')
     );
     this.createButton('QUITTER', baseY + spacing * 2, () => {
