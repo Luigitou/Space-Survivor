@@ -67,7 +67,11 @@ export class MainScene extends CustomScene {
     this.load.image('xp2', 'assets/sprites/xp-sprites/xp2.png');
     this.load.image('xp3', 'assets/sprites/xp-sprites/xp3.png');
     this.load.image('crosshair', 'assets/sprites/crosshairs/crosshair066.png');
-    this.load.image('enemy-cac', 'assets/sprites/enemy/cqc/Character.png');
+    this.load.atlas(
+      'enemy-cac',
+      'assets/sprites/enemy/cqc/Attack_1/Attack_01-sheet.png',
+      'assets/sprites/enemy/cqc/Attack_1/attack.json'
+    );
     this.load.image('enemy-range', 'assets/sprites/enemy/range/Character.png');
     this.load.image('boss', 'assets/sprites/boss.png');
     MusicManager.getInstance().preloadSceneMusic(this);
@@ -98,6 +102,20 @@ export class MainScene extends CustomScene {
       }),
       frameRate: 10,
       repeat: -1,
+    });
+
+    // Ajouter après les autres animations
+    this.anims.create({
+      key: 'cac-attack',
+      frames: this.anims.generateFrameNames('enemy-cac', {
+        prefix: 'Attack_01 ',
+        start: 0,
+        end: 6,
+        suffix: '.png',
+        zeroPad: 0,
+      }),
+      frameRate: 10,
+      repeat: 0,
     });
 
     // Création du crosshair
