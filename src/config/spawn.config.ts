@@ -23,8 +23,8 @@ function generateWave(waveNumber: number): WaveConfig {
 
   // Vagues normales avec difficulté progressive
   return {
-    cacCount: Math.floor(3 + waveNumber * 2),
-    rangeCount: Math.floor(1 + waveNumber),
+    cacCount: Math.floor(5 + waveNumber),
+    rangeCount: Math.floor(3 + waveNumber * 2),
     bossCount: 0,
     spawnDelay: Math.max(200, 1000 - waveNumber * 50),
     waveDuration: 30000,
