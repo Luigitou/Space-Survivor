@@ -12,6 +12,7 @@ export class MenuScene extends Phaser.Scene {
     this.load.audio('buttonHover', 'audio/hover.wav');
     this.load.audio('buttonClick', 'audio/click.wav');
     this.load.image('titleImage', 'assets/logo.png');
+    this.load.audio('quit', 'audio/music/Quit.mp3');
     MusicManager.getInstance().preloadSceneMusic(this);
   }
 
@@ -43,11 +44,34 @@ export class MenuScene extends Phaser.Scene {
     this.createButton('OPTIONS', baseY + spacing, () =>
       this.scene.start('OptionsScene')
     );
-    this.createButton('QUITTER', baseY + spacing * 2, () =>
-      console.log('Quitter clicked')
-    );
+    this.createButton('QUITTER', baseY + spacing * 2, () => {
+      const music = this.sound.add('quit');
+
+      music.play();
+      music.once('complete', () => {
+        MusicManager.getInstance().playSceneMusic(this);
+      });
+    });
 
     MusicManager.getInstance().playSceneMusic(this);
+  }
+
+  createStars() {
+    const { width, height } = this.scale;
+    for (let i = 0; i < 100; i++) {
+      const x = Phaser.Math.Between(0, width);
+      const y = Phaser.Math.Between(0, height);
+      const star = this.add.image(x, y, 'star').setScale(0.5);
+      this.tweens.add({
+        targets: star,
+        alpha: 0,
+        duration: Phaser.Math.Between(1000, 3000),
+        repeat: -1,
+        yoyo: true,
+        x: x + Phaser.Math.Between(-5, 5),
+        y: y + Phaser.Math.Between(-5, 5),
+      });
+    }
   }
 
   private createButton(text: string, y: number, callback: () => void): void {
@@ -153,23 +177,5 @@ export class MenuScene extends Phaser.Scene {
     graphics.fillRoundedRect(-width / 2, -height / 2, width, height, 15);
     graphics.fillStyle(fillColor);
     graphics.fillRoundedRect(-width / 2, -height / 2, width, height - 5, 15);
-  }
-
-  createStars() {
-    const { width, height } = this.scale;
-    for (let i = 0; i < 100; i++) {
-      const x = Phaser.Math.Between(0, width);
-      const y = Phaser.Math.Between(0, height);
-      const star = this.add.image(x, y, 'star').setScale(0.5);
-      this.tweens.add({
-        targets: star,
-        alpha: 0,
-        duration: Phaser.Math.Between(1000, 3000),
-        repeat: -1,
-        yoyo: true,
-        x: x + Phaser.Math.Between(-5, 5),
-        y: y + Phaser.Math.Between(-5, 5),
-      });
-    }
   }
 }
