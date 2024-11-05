@@ -1,11 +1,15 @@
 import { BasicEnemy, Projectile } from '~/objects';
-import { RangeEnemyConfig } from '~/config';
+import { EnemyConfig, RangeEnemyConfig } from '~/config';
 
 export class RangeEnemy extends BasicEnemy {
   private canShoot: boolean = true;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'enemy-range');
+    this.setOrigin(0.5, 0.5);
+    this.setDisplaySize(EnemyConfig.sizeSprite, EnemyConfig.sizeSprite);
+    this.setCircle(EnemyConfig.sizeHitbox);
+    this.setFixedRotation();
   }
 
   public update() {

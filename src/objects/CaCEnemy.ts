@@ -1,5 +1,5 @@
 import { BasicEnemy } from '~/objects';
-import { CaCEnemyConfig } from '~/config';
+import { CaCEnemyConfig, EnemyConfig } from '~/config';
 
 export class CaCEnemy extends BasicEnemy {
   private canAttack: boolean = true;
@@ -7,7 +7,9 @@ export class CaCEnemy extends BasicEnemy {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'enemy-cac');
     this.setDisplaySize(64, 64);
+    this.setCircle(EnemyConfig.sizeHitbox);
     this.setFrame('Attack_01 0.png');
+    this.setFixedRotation();
   }
 
   public update() {
