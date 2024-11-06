@@ -70,18 +70,25 @@ export class Weapon {
   }
 
   public shoot(target: Phaser.Physics.Matter.Sprite) {
+    console.log('current ammo:', this.currentAmmo);
     const weaponMods = this.getWeaponMods();
     if ((weaponMods as weaponMods).burstFire) {
-      for (let i = 0; i < 3; i++) {
-        this.scene.time.delayedCall(100 * i, () => {
-          new PlayerProjectile(
-            this.scene,
-            target.x,
-            target.y,
-            this.weaponConfig.damage,
-            this
-          );
-        });
+      if (this.canShoot && this.currentAmmo > 0) {
+        for (let i = 0; i < 3; i++) {
+          this.scene.time.delayedCall(100 * i, () => {
+            new PlayerProjectile(
+              this.scene,
+              target.x,
+              target.y,
+              this.weaponConfig.damage,
+              this
+            );
+            this.currentAmmo--;
+            if (this.currentAmmo === 0) {
+              this.reload();
+            }
+          });
+        }
       }
     } else if ((weaponMods as weaponMods).infiniteAmmo) {
       new PlayerProjectile(
